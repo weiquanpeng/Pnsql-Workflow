@@ -1,15 +1,9 @@
 import { createPinia } from 'pinia';
-import { createPersistedState } from 'pinia-plugin-persistedstate';
+import useAppStore from './modules/app';
+import useUserStore from './modules/user';
+import useTabBarStore from './modules/tab-bar';
 
-const store = createPinia();
-store.use(createPersistedState());
+const pinia = createPinia();
 
-export { store };
-
-export * from './modules/notification';
-export * from './modules/permission';
-export * from './modules/setting';
-export * from './modules/tabs-router';
-export * from './modules/user';
-
-export default store;
+export { useAppStore, useUserStore, useTabBarStore };
+export default pinia;

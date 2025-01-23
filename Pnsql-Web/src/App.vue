@@ -1,24 +1,26 @@
 <template>
-  <t-config-provider :global-config="getComponentsLocale">
-    <router-view :key="locale" :class="[mode]" />
-  </t-config-provider>
+  <a-config-provider :locale="locale">
+    <router-view />
+    <global-setting />
+  </a-config-provider>
 </template>
-<script setup lang="ts">
-import { computed } from 'vue';
 
-import { useLocale } from '@/locales/useLocale';
-import { useSettingStore } from '@/store';
+<script lang="ts" setup>
+  import { computed } from 'vue';
+  import enUS from '@arco-design/web-vue/es/locale/lang/en-us';
+  import zhCN from '@arco-design/web-vue/es/locale/lang/zh-cn';
+  import GlobalSetting from '@/components/global-setting/index.vue';
+  import useLocale from '@/hooks/locale';
 
-const store = useSettingStore();
-
-const mode = computed(() => {
-  return store.displayMode;
-});
-
-const { getComponentsLocale, locale } = useLocale();
+  const { currentLocale } = useLocale();
+  const locale = computed(() => {
+    switch (currentLocale.value) {
+      case 'zh-CN':
+        return zhCN;
+      case 'en-US':
+        return enUS;
+      default:
+        return enUS;
+    }
+  });
 </script>
-<style lang="less" scoped>
-#nprogress .bar {
-  background: var(--td-brand-color) !important;
-}
-</style>
