@@ -1,0 +1,96 @@
+{
+  "code": 0,
+  "data": {
+    "list": [
+      {
+        "path": "/list",
+        "name": "list",
+        "component": "LAYOUT",
+        "redirect": "/list/base",
+        "meta": {
+          "title": {
+            "zh_CN": "列表页",
+            "en_US": "List"
+          },
+          "icon": "view-list"
+        },
+        "children": [
+          {
+            "path": "base",
+            "name": "ListBase",
+            "component": "/list/base/index",
+            "meta": {
+              "title": {
+                "zh_CN": "基础列表页",
+                "en_US": "Base List"
+              }
+            }
+          },
+          {
+            "path": "tree",
+            "name": "ListTree",
+            "component": "/list/tree/index",
+            "meta": {
+              "title": {
+                "zh_CN": "树状筛选列表页",
+                "en_US": "Tree List"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "path": "/detail",
+        "name": "detail",
+        "component": "LAYOUT",
+        "redirect": "/detail/base",
+        "meta": {
+          "title": {
+            "zh_CN": "详情页",
+            "en_US": "Detail"
+          },
+          "icon": "layers"
+        },
+        "children": [
+          {
+            "path": "deploy",
+            "name": "DetailDeploy",
+            "component": "/detail/deploy/index",
+            "meta": {
+              "title": {
+                "zh_CN": "数据详情页",
+                "en_US": "Data Detail"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "path": "/404",
+        "name": "404",
+        "component": "LAYOUT",
+        "redirect": "/sit/base",
+        "meta": {
+          "title": {
+            "zh_CN": "测试模块",
+            "en_US": " sit"
+          },
+          "icon": "edit-1"
+        },
+        "children": [
+          {
+            "path": "base",
+            "name": "error",
+            "component": "/404/base/index",
+            "meta": {
+              "title": {
+                "zh_CN": "错误页面",
+                "en_US": "Base error"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
