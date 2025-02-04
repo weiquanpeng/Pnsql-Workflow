@@ -1,0 +1,7 @@
+2025-01-30 13:00:29,384 - INFO - 创建用户成功
+2025-01-30 13:01:29,732 - INFO - 创建用户: new_user 成功
+2025-01-30 13:06:59,280 - INFO - 创建用户: new_user 成功
+2025-01-30 13:07:25,295 - INFO - 创建用户: new_user 成功
+2025-01-30 13:07:42,631 - ERROR - 更新用户失败，原因: 'NoneType' object has no attribute 'account'
+2025-01-30 13:07:55,816 - ERROR - 更新用户失败，原因: 'NoneType' object has no attribute 'account'
+2025-01-30 13:08:07,428 - INFO - 更新用户 ID 2 成功

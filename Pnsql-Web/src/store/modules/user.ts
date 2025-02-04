@@ -10,7 +10,7 @@ const InitUserInfo: UserInfo = {
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: 'main_token', // 默认token不走权限
+    token: '',
     userInfo: { ...InitUserInfo },
   }),
   getters: {
@@ -82,6 +82,6 @@ export const useUserStore = defineStore('user', {
       permissionStore.initRoutes();
     },
     key: 'user',
-    paths: ['token'],
+    paths: ['token', 'userInfo'],
   },
 });

@@ -5,10 +5,12 @@ database:
   password: 123123
   database: pnsql_workflow
 
-logging:
-  level: INFO
-  file: ./log/myapp.log
-
 app:
   debug: False
   port: 2379
+  log_path: log/
+  file_path: http://localhost:3002
+
+jwt:
+  permanent_token: ekJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTczODMyNDQ5OH0.9znJOAPKjmRuoSQwTM0GIZYfS8FbUhGjXvA7ZVvkZkW
+  expipe_minutes: 10080

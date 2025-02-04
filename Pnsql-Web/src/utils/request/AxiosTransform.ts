@@ -50,7 +50,7 @@ export abstract class AxiosTransform {
   /**
    * 响应拦截器
    */
-  responseInterceptors?: (res: AxiosResponse) => AxiosResponse;
+  responseInterceptors?: (res: AxiosResponse) => AxiosResponse | Promise<never>;
 
   /**
    * 请求拦截器错误处理

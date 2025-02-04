@@ -19,7 +19,7 @@
       <tdesign-setting />
     </div>
 
-    <footer class="copyright">Copyright @ 2021-2023 Tencent. All Rights Reserved</footer>
+    <footer class="copyright">Copyright @ 2024-2025 PnSql-Workflow. All Rights Reserved</footer>
   </div>
 </template>
 <script lang="ts">

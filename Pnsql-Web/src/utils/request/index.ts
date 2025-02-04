@@ -2,6 +2,7 @@
 import type { AxiosInstance } from 'axios';
 import isString from 'lodash/isString';
 import merge from 'lodash/merge';
+import { MessagePlugin } from 'tdesign-vue-next';
 
 import { ContentTypeEnum } from '@/constants';
 import { useUserStore } from '@/store';
@@ -9,6 +10,7 @@ import { useUserStore } from '@/store';
 import { VAxios } from './Axios';
 import type { AxiosTransform, CreateAxiosOptions } from './AxiosTransform';
 import { formatRequestDate, joinTimestamp, setObjToUrlParams } from './utils';
+import router from '@/router';
 
 const env = import.meta.env.MODE || 'development';
 
@@ -18,7 +20,7 @@ const host = env === 'mock' || import.meta.env.VITE_IS_REQUEST_PROXY !== 'true' 
 // 数据处理，方便区分多种处理方式
 const transform: AxiosTransform = {
   // 处理请求数据。如果数据不是预期格式，可直接抛出错误
-  transformRequestHook: (res, options) => {
+  transformRequestHook: (res, options): any => {
     const { isTransformResponse, isReturnNativeResponse } = options;
 
     // 如果204无内容直接返回
@@ -31,30 +33,27 @@ const transform: AxiosTransform = {
     if (isReturnNativeResponse) {
       return res;
     }
+
     // 不进行任何处理，直接返回
     // 用于页面代码可能需要直接获取code，data，message这些信息时开启
     if (!isTransformResponse) {
       return res.data;
     }
 
-    // 错误的时候返回
+    // 获取响应数据
     const { data } = res;
     if (!data) {
-      throw new Error('请求接口错误');
+      // 如果 data 为空，返回一个包含错误信息的对象
+      return {
+        code: -1,
+        message: '请求接口错误',
+        data: null,
+      };
     }
 
-    //  这里 code为 后台统一的字段，需要在 types.ts内修改为项目自己的接口返回格式
-    const { code } = data;
-
-    // 这里逻辑可以根据项目进行修改
-    const hasSuccess = data && code === 0;
-    if (hasSuccess) {
-      return data.data;
-    }
-
-    throw new Error(`请求接口错误, 错误码: ${code}`);
+    // 直接返回 data
+    return data;
   },
-
   // 请求前处理配置
   beforeRequestHook: (config, options) => {
     const { apiUrl, isJoinPrefix, urlPrefix, joinParamsToUrl, formatDate, joinTime = true } = options;
@@ -122,12 +121,29 @@ const transform: AxiosTransform = {
         ? `${options.authenticationScheme} ${token}`
         : token;
     }
+    // console.log(config.headers);
     return config;
   },
 
   // 响应拦截器处理
   responseInterceptors: (res) => {
-    return res;
+    if (res.data.code === 200) {
+      return res;
+    }
+    if (res.data.code === 801) {
+      router.push({
+        path: '/login',
+        query: { redirect: encodeURIComponent(router.currentRoute.value.fullPath) },
+      });
+      MessagePlugin.error(res.data.msg);
+      return Promise.reject(res);
+    }
+    if (res.data.msg) {
+      MessagePlugin.error(res.data.msg);
+      return Promise.reject(res.data); // 使用拒绝Promise明确错误处理
+    }
+    // eslint-disable-next-line prefer-promise-reject-errors
+    return Promise.reject({ message: 'Unknown error occurred.', res }); // 清晰的错误信息
   },
 
   // 响应错误处理
@@ -193,10 +209,10 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
           // 是否携带token
           withToken: true,
           // 重试
-          retry: {
-            count: 3,
-            delay: 1000,
-          },
+          // retry: {
+          //   count: 3,
+          //   delay: 1000,
+          // },
         },
       },
       opt || {},

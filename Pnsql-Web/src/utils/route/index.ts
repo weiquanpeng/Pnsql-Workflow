@@ -88,7 +88,8 @@ export function transformObjectToRoute<T = RouteItem>(routeList: RouteItem[]): T
   routeList.forEach(async (route) => {
     const component = route.component as string;
 
-    if (component) {
+    // 只有在 component 是字符串时才处理
+    if (typeof component === 'string') {
       if (component.toUpperCase() === 'LAYOUT') {
         route.component = LayoutMap.get(component.toUpperCase());
       } else {
@@ -98,12 +99,11 @@ export function transformObjectToRoute<T = RouteItem>(routeList: RouteItem[]): T
         route.path = '';
         route.meta = (route.meta || {}) as RouteMeta;
       }
-    } else {
-      throw new Error('component is undefined');
+      // eslint-disable-next-line no-unused-expressions
+      route.children && asyncImportRoute(route.children);
+      if (route.meta.icon) route.meta.icon = await getMenuIcon(route.meta.icon);
     }
-    // eslint-disable-next-line no-unused-expressions
-    route.children && asyncImportRoute(route.children);
-    if (route.meta.icon) route.meta.icon = await getMenuIcon(route.meta.icon);
+    // 如果 component 不是字符串，直接跳过，不做任何处理
   });
 
   return [PAGE_NOT_FOUND_ROUTE, ...routeList] as unknown as T[];

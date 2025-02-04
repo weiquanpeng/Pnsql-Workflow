@@ -3,37 +3,26 @@
   "data": {
     "list": [
       {
-        "path": "/list",
-        "name": "list",
+        "path": "/task",
+        "name": "task",
         "component": "LAYOUT",
-        "redirect": "/list/base",
+        "redirect": "/task/base",
         "meta": {
           "title": {
-            "zh_CN": "列表页",
-            "en_US": "List"
+            "zh_CN": "工单管理",
+            "en_US": "Task"
           },
           "icon": "view-list"
         },
         "children": [
           {
             "path": "base",
-            "name": "ListBase",
-            "component": "/list/base/index",
+            "name": "TaskBase",
+            "component": "/task/base/index",
             "meta": {
               "title": {
-                "zh_CN": "基础列表页",
-                "en_US": "Base List"
-              }
-            }
-          },
-          {
-            "path": "tree",
-            "name": "ListTree",
-            "component": "/list/tree/index",
-            "meta": {
-              "title": {
-                "zh_CN": "树状筛选列表页",
-                "en_US": "Tree List"
+                "zh_CN": "工单详情",
+                "en_US": "Task List"
               }
             }
           }
@@ -60,6 +49,58 @@
               "title": {
                 "zh_CN": "数据详情页",
                 "en_US": "Data Detail"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "path": "/owner",
+        "name": "owner",
+        "component": "LAYOUT",
+        "redirect": "/owner/base",
+        "meta": {
+          "title": {
+            "zh_CN": "用户页",
+            "en_US": "owner"
+          },
+          "icon": "user-search"
+        },
+        "children": [
+          {
+            "path": "ownerPage",
+            "name": "OwnerPage",
+            "component": "/owner/index",
+            "meta": {
+              "title": {
+                "zh_CN": "用户管理",
+                "en_US": "owner Detail"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "path": "/sit",
+        "name": "sit",
+        "component": "LAYOUT",
+        "redirect": "/sit/base",
+        "meta": {
+          "title": {
+            "zh_CN": "测试页",
+            "en_US": " Sit"
+          },
+          "icon": "tools"
+        },
+        "children": [
+          {
+            "path": "sitPage",
+            "name": "SitPage",
+            "component": "/sit/index",
+            "meta": {
+              "title": {
+                "zh_CN": "测试模块",
+                "en_US": "Sit Detail"
               }
             }
           }

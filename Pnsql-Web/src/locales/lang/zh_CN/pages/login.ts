@@ -2,7 +2,7 @@ export default {
   loginTitle: '登录到',
   noAccount: '没有账号吗?',
   existAccount: '已有账号?',
-  createAccount: '注册新账号',
+  createAccount: '申请新账号',
   remember: '记住账号',
   forget: '忘记账号',
   signIn: '登录',

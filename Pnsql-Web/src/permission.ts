@@ -12,9 +12,7 @@ NProgress.configure({ showSpinner: false });
 
 router.beforeEach(async (to, from, next) => {
   NProgress.start();
-
   const permissionStore = getPermissionStore();
-  const { whiteListRouters } = permissionStore;
 
   const userStore = useUserStore();
 
@@ -24,7 +22,7 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
     try {
-      await userStore.getUserInfo();
+      // await userStore.getUserInfo();
 
       const { asyncRoutes } = permissionStore;
 
@@ -57,15 +55,7 @@ router.beforeEach(async (to, from, next) => {
       NProgress.done();
     }
   } else {
-    /* white list router */
-    if (whiteListRouters.indexOf(to.path) !== -1) {
-      next();
-    } else {
-      next({
-        path: '/login',
-        query: { redirect: encodeURIComponent(to.fullPath) },
-      });
-    }
+    next();
     NProgress.done();
   }
 });

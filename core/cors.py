@@ -1,14 +1,14 @@
 from fastapi.middleware.cors import CORSMiddleware
 
+from initialize.init_config import config
+
 
 def setup_cors(app):
-    """
-    配置 CORS 中间件
-    """
+    origins=config['app']['file_path']
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # 允许所有来源，生产环境应改为具体的域名
-        allow_credentials=True,  # 允许携带凭证（如 cookies）
-        allow_methods=["GET", "POST", "PUT"],
-        allow_headers=["*"],  # 允许所有 HTTP 头
+        allow_origins=origins,  # 用具体的URL代替 *
+        allow_credentials=True,  # 允许带凭证的请求
+        allow_methods=["GET", "POST", "PUT"],  # 允许的方法
+        allow_headers=["*"],  # 通常可以允许所有headers
     )
