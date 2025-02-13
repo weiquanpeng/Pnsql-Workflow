@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Date, String, BigInteger, Integer, DECIMAL, Index
+from sqlalchemy.future import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from initialize.init_database import Base
 
 class PwqScecss(Base):
@@ -33,3 +35,9 @@ class PwqScecss(Base):
         Index('in_3', 'f6'),
         Index('in_4', 'f0'),
     )
+
+    @classmethod
+    async def get_stock_by_f0(cls, session: AsyncSession, f0_id: str):
+        stmt = select(cls).where(cls.f0 == f0_id).order_by(cls.f1.asc())
+        result = await session.execute(stmt)
+        return result.scalars().all()
