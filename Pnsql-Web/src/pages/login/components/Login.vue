@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInstanceFunctions, FormRule, SubmitContext } from 'tdesign-vue-next';
+import {FormInstanceFunctions, FormRule, MessagePlugin, SubmitContext} from 'tdesign-vue-next';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -102,7 +102,8 @@ const onSubmit = async (ctx: SubmitContext) => {
         userStore.userInfo.name = data.data.user.account;
         const redirect = route.query.redirect as string;
         const redirectUrl = redirect ? decodeURIComponent(redirect) : '/dashboard';
-        router.push(redirectUrl);
+        await router.push(redirectUrl);
+        MessagePlugin.info({ content: '登录成功', duration: 2000 });
       }
     } catch (e) {
       // pass

@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
-from initialize.init_database import engine, get_db
+from initialize.init_database import engine
 from initialize.init_table import init_tables, init_default_user
 from initialize.init_database import Base
 

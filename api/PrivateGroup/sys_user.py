@@ -3,8 +3,10 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from initialize.init_database import get_db
 from model.sys_user import SysUser
-import api.response.response as response
+import util.response as response
 from util.hashlib import hash_password
+
+router = APIRouter()
 
 
 class UserRequest(BaseModel):
@@ -12,7 +14,7 @@ class UserRequest(BaseModel):
     account: str = None
     email: str = None
     password: str = None
-    roles: dict = None
+    roles: list = None
     phone: str = None
     enable: int = 0
 
@@ -28,11 +30,8 @@ def build_user_data(user):
     }
 
 
-router = APIRouter()
-
-
 @router.post("/SysGetUserList")
-async def insert_user(session: AsyncSession = Depends(get_db)):
+async def select_user(session: AsyncSession = Depends(get_db)):
     try:
         users = await SysUser.get_all_users(session)
         if users:
@@ -40,7 +39,6 @@ async def insert_user(session: AsyncSession = Depends(get_db)):
             return response.ok_with_data({"users": user_data_list})
         else:
             return response.ok_with_message("查询用户失败")
-
     except Exception as e:
         return response.fail_with_message(f"查询用户出错: {str(e)}")
 
@@ -53,7 +51,6 @@ async def insert_user(request: UserRequest, session: AsyncSession = Depends(get_
         # 更新请求数据中的密码字段
         data = request.model_dump(exclude_unset=True)
         data["password"] = hashed_password
-
         # 插入用户
         new_user = await SysUser.insert_user(session, data)
         if new_user:
@@ -85,3 +82,17 @@ async def update_user(request: UserRequest, session: AsyncSession = Depends(get_
             return response.fail_with_message("更新用户失败")
     except Exception as e:
         return response.fail_with_message(f"更新用户出错: {str(e)}")
+
+
+@router.post("/SysDelUser")
+async def delete_user(request: UserRequest, session: AsyncSession = Depends(get_db)):
+    try:
+        user_id_to_delete = request.id
+        # 插入用户
+        success = await SysUser.delete_user(session, user_id_to_delete)
+        if success:
+            return response.ok()
+        else:
+            return response.fail_with_message("删除用户失败")
+    except Exception as e:
+        return response.fail_with_message(f"删除用户出错: {str(e)}")

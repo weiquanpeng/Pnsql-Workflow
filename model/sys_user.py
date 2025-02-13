@@ -74,3 +74,21 @@ class SysUser(Base):
             await session.rollback()  # 使用 await
             logger.error(f"更新用户失败，原因: {e}")
             return None
+    @classmethod
+    async def delete_user(cls, session: AsyncSession, user_id: int):
+        try:
+            # 获取用户记录
+            user = await cls.get_user_by_id(session, user_id)
+            if user:
+                # 删除用户
+                await session.delete(user)
+                await session.commit()  # 提交更改
+                logger.info(f"删除用户 ID {user_id} 成功")
+                return True
+            else:
+                logger.warning(f"用户 ID {user_id} 未找到")
+                return False
+        except Exception as e:
+            await session.rollback()  # 回滚事务
+            logger.error(f"删除用户失败，原因: {e}")
+            return False

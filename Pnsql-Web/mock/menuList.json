@@ -29,6 +29,121 @@
         ]
       },
       {
+        "path": "/advancedStudy",
+        "name": "advancedStudy",
+        "component": "LAYOUT",
+        "redirect": "/advancedStudy",
+        "meta": {
+          "title": {
+            "zh_CN": "学习模块",
+            "en_US": "advancedStudy"
+          },
+          "icon": "data-base"
+        },
+        "children": [
+          {
+            "path": "databasePage",
+            "name": "DatabasePage",
+            "component": "/advancedStudy/database",
+            "meta": {
+              "title": {
+                "zh_CN": "数据库",
+                "en_US": "DB Detail"
+              }
+            }
+          },
+          {
+            "path": "advancedStudyPage",
+            "name": "AdvancedStudyPage",
+            "component": "/advancedStudy/prometheus",
+            "meta": {
+              "title": {
+                "zh_CN": "监控",
+                "en_US": "Prometheus Detail"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "path": "/quantitativeTrading",
+        "name": "quantitativeTrading",
+        "component": "LAYOUT",
+        "redirect": "/quantitativeTrading",
+        "meta": {
+          "title": {
+            "zh_CN": "量化操作",
+            "en_US": "quantitativeTrading"
+          },
+          "icon": "currency-exchange"
+        },
+        "children": [
+          {
+            "path": "quantitativeTrading",
+            "name": "QuantitativeTrading",
+            "component": "/quantitativeTrading/index",
+            "meta": {
+              "title": {
+                "zh_CN": "量化选股",
+                "en_US": "quantitativeTrading Detail"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "path": "/owner",
+        "name": "owner",
+        "component": "LAYOUT",
+        "redirect": "/owner",
+        "meta": {
+          "title": {
+            "zh_CN": "用户管理",
+            "en_US": "owner"
+          },
+          "icon": "user-search"
+        },
+        "children": [
+          {
+            "path": "ownerPage",
+            "name": "OwnerPage",
+            "component": "/owner/index",
+            "meta": {
+              "title": {
+                "zh_CN": "用户详情",
+                "en_US": "owner Detail"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "path": "/sit",
+        "name": "sit",
+        "component": "LAYOUT",
+        "redirect": "/sit",
+        "meta": {
+          "title": {
+            "zh_CN": "测试页",
+            "en_US": " Sit"
+          },
+          "icon": "tools"
+        },
+        "children": [
+          {
+            "path": "sitPage",
+            "name": "SitPage",
+            "component": "/sit/index",
+            "meta": {
+              "title": {
+                "zh_CN": "测试模块",
+                "en_US": "Sit Detail"
+              }
+            }
+          }
+        ]
+      },
+      {
         "path": "/detail",
         "name": "detail",
         "component": "LAYOUT",
@@ -55,66 +170,14 @@
         ]
       },
       {
-        "path": "/owner",
-        "name": "owner",
-        "component": "LAYOUT",
-        "redirect": "/owner/base",
-        "meta": {
-          "title": {
-            "zh_CN": "用户页",
-            "en_US": "owner"
-          },
-          "icon": "user-search"
-        },
-        "children": [
-          {
-            "path": "ownerPage",
-            "name": "OwnerPage",
-            "component": "/owner/index",
-            "meta": {
-              "title": {
-                "zh_CN": "用户管理",
-                "en_US": "owner Detail"
-              }
-            }
-          }
-        ]
-      },
-      {
-        "path": "/sit",
-        "name": "sit",
-        "component": "LAYOUT",
-        "redirect": "/sit/base",
-        "meta": {
-          "title": {
-            "zh_CN": "测试页",
-            "en_US": " Sit"
-          },
-          "icon": "tools"
-        },
-        "children": [
-          {
-            "path": "sitPage",
-            "name": "SitPage",
-            "component": "/sit/index",
-            "meta": {
-              "title": {
-                "zh_CN": "测试模块",
-                "en_US": "Sit Detail"
-              }
-            }
-          }
-        ]
-      },
-      {
         "path": "/404",
         "name": "404",
         "component": "LAYOUT",
         "redirect": "/sit/base",
         "meta": {
           "title": {
-            "zh_CN": "测试模块",
-            "en_US": " sit"
+            "zh_CN": "隐藏模块",
+            "en_US": "404"
           },
           "icon": "edit-1"
         },
@@ -126,7 +189,7 @@
             "meta": {
               "title": {
                 "zh_CN": "错误页面",
-                "en_US": "Base error"
+                "en_US": "404 error"
               }
             }
           }

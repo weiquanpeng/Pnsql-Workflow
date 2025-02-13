@@ -18,11 +18,11 @@ engine = create_async_engine(
     pool_recycle=3600,  # 连接池回收时间
 )
 
-# 创建异步会话工厂，开启自动提交模式
+# 创建异步会话工厂
 AsyncSessionLocal = sessionmaker(
     bind=engine,
     class_=AsyncSession,
-    expire_on_commit=False,
+    expire_on_commit=False,  # 避免提交后对象过期
 )
 
 # 声明基类
@@ -32,3 +32,13 @@ Base = declarative_base()
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+
+# 测试数据库连接
+async def test_connection():
+    try:
+        async with engine.connect() as conn:
+            print("✅ Database connection successful!")
+            return True
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        return False

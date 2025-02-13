@@ -1,6 +1,6 @@
 from fastapi import Request
 from core.jwt import JWTUtils
-from api.response.response import fail_with_data
+from util.response import fail_with_data
 from initialize.init_config import config
 from initialize.init_database import AsyncSessionLocal
 from model.jwt import JWT

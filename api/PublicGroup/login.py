@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.jwt import JWTUtils, ACCESS_TOKEN_EXPIRE_MINUTES
 from initialize.init_database import get_db
 from model.sys_user import SysUser
-import api.response.response as response
+import util.response as response
 from util.hashlib import verify_password
 
 
