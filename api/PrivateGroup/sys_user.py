@@ -36,8 +36,6 @@ async def select_user(session: AsyncSession = Depends(get_db)):
         users = await SysUser.get_all_users(session)
         if users:
             user_data_list = [build_user_data(user) for user in users]
-            print("==={}===".format(user_data_list))
-            print(type(user_data_list))
             return response.ok_with_data({"users": user_data_list})
         else:
             return response.ok_with_message("查询用户失败")
