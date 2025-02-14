@@ -33,7 +33,7 @@ def build_stock_data(pwq_sce: PwqScecss):
 
 
 
-@router.post("/stock_f0")
+@router.get("/stock_f0")
 async def get_stock_by_f0(request: StockRequest, session: AsyncSession = Depends(get_db)):
     try:
         stocks = await PwqScecss.get_stock_by_f0(session,request.f0_id)
