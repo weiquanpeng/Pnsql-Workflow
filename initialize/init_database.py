@@ -16,6 +16,7 @@ engine = create_async_engine(
     max_overflow=100,  # 连接池允许的最大溢出连接数
     pool_timeout=10,  # 连接池获取连接的超时时间（秒）
     pool_recycle=3600,  # 连接池回收时间
+    execution_options={"isolation_level": "AUTOCOMMIT"},
 )
 
 # 创建异步会话工厂

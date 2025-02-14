@@ -89,38 +89,35 @@ async def select_user(session: AsyncSession = Depends(get_db)):
 # 创建工单
 @router.post("/TaskConfigAddData")
 async def insert_user(request: TaskRequest, session: AsyncSession = Depends(get_db)):
-    async with session.begin():
-        try:
-            data = request.model_dump(exclude_unset=True)
-            new_data = await TaskConfig.insert_task(session, data)
-            if new_data:
-                new_data = build_user_data(new_data)
-                auth, base_url = get_auth_and_base_url()
-                airflow_url = f"{base_url}/dags/{data['type']}/dagRuns"
-                payload = {
-                    "dag_run_id": str(new_data['id']),
-                    "conf": {
-                        "owner": new_data['owner']
-                    }
+    try:
+        data = request.model_dump(exclude_unset=True)
+        new_data = await TaskConfig.insert_task(session, data)
+        if new_data:
+            new_data = build_user_data(new_data)
+            auth, base_url = get_auth_and_base_url()
+            airflow_url = f"{base_url}/dags/{data['type']}/dagRuns"
+            payload = {
+                "dag_run_id": str(new_data['id']),
+                "conf": {
+                    "owner": new_data['owner']
                 }
-                try:
-                    airflow_response = requests.post(
-                        airflow_url, json=payload, auth=auth,
-                        headers={'Content-Type': 'application/json'}
-                    )
-                    airflow_response.raise_for_status()
-                except requests.RequestException as e:
-                    await session.rollback()
-                    raise HTTPException(status_code=500, detail=f"Error contacting Airflow API: {str(e)}")
-                return response.ok_with_data(new_data)
-            else:
-                return response.fail_with_message("插入工单失败")
-        except SQLAlchemyError as e:
-            await session.rollback()
-            return response.fail_with_message(f"数据库错误: {str(e)}")
-        except Exception as e:
-            await session.rollback()
-            return response.fail_with_message(f"插入工单出错: {str(e)}")
+            }
+            try:
+                airflow_response = requests.post(
+                    airflow_url, json=payload, auth=auth,
+                    headers={'Content-Type': 'application/json'}
+                )
+                airflow_response.raise_for_status()
+            except requests.RequestException:
+                return response.fail_with_message("airflow初始化工单失败")
+            return response.ok_with_data(new_data)
+        else:
+            return response.fail_with_message("创建工单失败")
+    except SQLAlchemyError as e:
+        return response.fail_with_message(f"数据库错误: {str(e)}")
+    except Exception as e:
+        return response.fail_with_message(f"创建工单出错: {str(e)}")
+
 
 # 查询主工单状态
 # @router.get("/TaskConfigList")

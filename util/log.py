@@ -15,7 +15,7 @@ def logger(log_name='pnsql-workflow', log_level='INFO'):
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
     # 日志文件路径
-    log_file = '{}/{}.{}'.format(config["app"]["log_path"], log_name, datetime.today().strftime('%Y%m%d'))
+    log_file = '{}/{}.{}.log'.format(config["app"]["log_path"], log_name, datetime.today().strftime('%Y%m%d'))
 
     # 文件处理器
     handler = logging.FileHandler(log_file)

@@ -50,11 +50,10 @@ class TaskConfig(Base):
             session.add(new_user)
             await session.flush()  # 使用 await
             await session.refresh(new_user)  # 使用 await
-            await session.commit()  # 使用 await
-            logger.info("创建工单: {} 成功".format(new_user. id))
+            # 在自动提交模式下，不需要显式commit
             return new_user
         except Exception as e:
-            await session.rollback()  # 使用 await
-            logger.error(f"创建工单失败，原因: {e}")
+            # 在自动提交模式下，rollback不会撤销已提交的语句
             return None
+
 

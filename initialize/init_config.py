@@ -14,3 +14,4 @@ def load_config():
 
 # 实例化配置对象
 config = load_config()
+

@@ -40,7 +40,7 @@
 
 <script setup lang="tsx">
 import { onMounted, ref, computed } from 'vue';
-import { getTaskConfigList, getMineTaskConfigList, getApproveTaskConfigList, getSubTaskConfigData } from '@/api/services/taskConfig';
+import { getTaskConfigList, getMineTaskConfigList, getApproveTaskConfigList } from '@/api/services/taskConfig';
 import { SearchIcon, CheckCircleFilledIcon, LoadingIcon, TimeIcon, EllipsisIcon } from 'tdesign-icons-vue-next';
 import { TableProps, InputAdornmentProps } from 'tdesign-vue-next';
 import TaskProcess from '@/pages/task/base/TaskProcess.vue';
@@ -106,11 +106,7 @@ const columns = ref<TableProps['columns']>([
 
 const handleIdClick = async (row: any) => {
   try {
-    const response = await getSubTaskConfigData(row.id, row.type);
-    if (response.code === 200) {
-      console.log(response);
-    }
-    taskProcessRef.value.handleClick(row.id);
+    taskProcessRef.value.handleClick(row.id,row.type);
   } catch (error) {
     console.error('Error fetching sub task config data:', error);
   }
