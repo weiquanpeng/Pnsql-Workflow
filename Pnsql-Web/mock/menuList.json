@@ -84,8 +84,19 @@
             "component": "/quantitativeTrading/index",
             "meta": {
               "title": {
-                "zh_CN": "量化选股",
+                "zh_CN": "个股详情",
                 "en_US": "quantitativeTrading Detail"
+              }
+            }
+          },
+          {
+            "path": "quantitativeList",
+            "name": "QuantitativeList",
+            "component": "/quantitativeTrading/tradingList",
+            "meta": {
+              "title": {
+                "zh_CN": "量化选股",
+                "en_US": "tradingList Detail"
               }
             }
           }
@@ -138,32 +149,6 @@
               "title": {
                 "zh_CN": "测试模块",
                 "en_US": "Sit Detail"
-              }
-            }
-          }
-        ]
-      },
-      {
-        "path": "/detail",
-        "name": "detail",
-        "component": "LAYOUT",
-        "redirect": "/detail/base",
-        "meta": {
-          "title": {
-            "zh_CN": "详情页",
-            "en_US": "Detail"
-          },
-          "icon": "layers"
-        },
-        "children": [
-          {
-            "path": "deploy",
-            "name": "DetailDeploy",
-            "component": "/detail/deploy/index",
-            "meta": {
-              "title": {
-                "zh_CN": "数据详情页",
-                "en_US": "Data Detail"
               }
             }
           }

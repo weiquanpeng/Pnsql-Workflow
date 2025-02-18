@@ -50,10 +50,9 @@ class TaskConfig(Base):
             session.add(new_user)
             await session.flush()  # 使用 await
             await session.refresh(new_user)  # 使用 await
-            # 在自动提交模式下，不需要显式commit
+            await session.commit()  # 使用 await
             return new_user
         except Exception as e:
-            # 在自动提交模式下，rollback不会撤销已提交的语句
+            await session.rollback()  # 使用 await
             return None
-
 

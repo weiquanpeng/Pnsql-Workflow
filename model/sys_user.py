@@ -7,7 +7,7 @@ from util.log import logger
 logger = logger(__file__, log_level="INFO")
 
 class SysUser(Base):
-    __tablename__ = "sys_users"  # 数据库表名
+    __tablename__ = "sys_users"
 
     # 表字段
     id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键ID")
@@ -63,12 +63,10 @@ class SysUser(Base):
         valid_data = {field: data.get(field) for field in valid_fields if field in data}
         user_id = valid_data.pop('id', None)
         user = await cls.get_user_by_id(session, user_id)
-
         try:
             for key, value in valid_data.items():
                 setattr(user, key, value)
             await session.commit()  # 使用 await
-            logger.info(f"更新用户 ID {user_id} 成功")
             return user
         except Exception as e:
             await session.rollback()  # 使用 await
@@ -83,10 +81,8 @@ class SysUser(Base):
                 # 删除用户
                 await session.delete(user)
                 await session.commit()  # 提交更改
-                logger.info(f"删除用户 ID {user_id} 成功")
                 return True
             else:
-                logger.warning(f"用户 ID {user_id} 未找到")
                 return False
         except Exception as e:
             await session.rollback()  # 回滚事务
