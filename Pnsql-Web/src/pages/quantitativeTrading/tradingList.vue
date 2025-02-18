@@ -25,7 +25,7 @@
         <t-loading v-if="loadingStatus[index]" text="加载数据..." size="small" class="custom-loading" />
         <div v-else class="log-container">
           <div class="log-content">
-            {{ data.map(item => item.stock_ticker).join('\n') }}
+            {{ data.length > 0 ? data.map(item => item.stock_ticker).join('\n') : '暂时数据......' }}
           </div>
         </div>
       </t-card>
@@ -176,6 +176,7 @@ onMounted(() => {
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
 }
 
 .custom-card:hover {
@@ -237,5 +238,17 @@ onMounted(() => {
   position: absolute;
   top: 10px;
   right: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.copy-button:hover {
+  background-color: #0056b3;
 }
 </style>

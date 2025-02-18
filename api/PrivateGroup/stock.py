@@ -27,6 +27,7 @@ def build_stock_data(pwq_sce: PwqScecss):
         "f3": float(pwq_sce.f3),
         "f4": float(pwq_sce.f4),
         "f5": float(pwq_sce.f5),
+        "f9": float(pwq_sce.f9),
         "f12": float(pwq_sce.f12),
         "f13": float(pwq_sce.f13),
         "f14": float(pwq_sce.f14),
