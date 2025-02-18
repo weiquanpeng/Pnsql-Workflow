@@ -303,6 +303,13 @@ const updateChart = () => {
         'k-250': true,
       },
     },
+    toolbox: {
+      feature: {
+        dataZoom: {
+          yAxisIndex: 'none'
+        }
+      }
+    },
     grid: {
       left: '3%',
       right: '4%',
@@ -607,6 +614,7 @@ const loadStockData = async (stockTicker: string, updateChartFlag = true) => {
   // 主显示分支：正常处理当前股票
   if (dataCache.has(stockTicker)) {
     stockData.value = dataCache.get(stockTicker);
+    dataZoomState.value = { start: 0, end: 100 }; // 重置缩放状态
     updateChart();
     return;
   }
@@ -617,6 +625,7 @@ const loadStockData = async (stockTicker: string, updateChartFlag = true) => {
       const newData = processData(response.data.data);
       stockData.value = newData;
       dataCache.set(stockTicker, newData);
+      dataZoomState.value = { start: 0, end: 100 }; // 重置缩放状态
       updateChart();
     }
   } catch (error) {

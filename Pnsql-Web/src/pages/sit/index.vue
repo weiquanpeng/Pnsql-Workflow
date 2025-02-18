@@ -1,63 +1,132 @@
 <template>
-  <t-card class="steps-card-container" :bordered="false">
-    <t-steps readonly>
-      <t-step-item
-        v-for="(step, index) in steps"
-        :key="index"
-        :title="step.title"
-        :content="step.content"
-        :status="step.status"
-      >
-        <template #icon>
-          <!-- 动态显示自定义图标 -->
-          <t-loading size="small" v-if="step.status === 'process'" />
-        </template>
-      </t-step-item>
-    </t-steps>
-  </t-card>
+  <div id="main" style="width: 100%; height: 400px;"></div>
 </template>
 
 <script>
-import { ref } from 'vue';
+import * as echarts from 'echarts';
 
 export default {
-  setup() {
-    const steps = ref([
-      {
-        title: "已完成的步骤",
-        content: "这里是提示文字",
-        status: "finish",
-      },
-      {
-        title: "已完成的步骤",
-        content: "这里是提示文字",
-        status: "finish",
-      },
-      {
-        title: "执行中的步骤",
-        content: "admin",
-        status: "process",
-      },
-      {
-        title: "错误的步骤",
-        content: "这里是提示文字",
-        status: "error",
-      },
-    ]);
+  mounted() {
+    // Get the chart DOM element
+    var chartDom = document.getElementById('main');
+    // Initialize the chart
+    var myChart = echarts.init(chartDom);
 
-    return {
-      steps,
+    // Generate random data for demo
+    function randomData() {
+      const baseValue = Math.random() * 300;
+      return Array.from({ length: 30 }, () => (Math.random() * 50) + baseValue);
+    }
+
+    let timeData = Array.from({ length: 30 }, (v, i) => `09/${i+1}`);
+
+    const option = {
+      title: {
+        text: 'Rainfall vs Evaporation',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          animation: false
+        }
+      },
+      legend: {
+        data: ['Evaporation', 'Rainfall'],
+        left: 10
+      },
+      toolbox: {
+        feature: {
+          dataZoom: {
+            yAxisIndex: 'none'
+          }
+        }
+      },
+      dataZoom: [
+        {
+          show: true,
+          realtime: true,
+          start: 30,
+          end: 70,
+          xAxisIndex: [0, 1]
+        },
+        {
+          type: 'inside',
+          realtime: true,
+          start: 30,
+          end: 70,
+          xAxisIndex: [0, 1]
+        }
+      ],
+      grid: [
+        {
+          left: 60,
+          right: 50,
+          height: '35%'
+        },
+        {
+          left: 60,
+          right: 50,
+          top: '55%',
+          height: '35%'
+        }
+      ],
+      xAxis: [
+        {
+          type: 'category',
+          boundaryGap: false,
+          axisLine: { onZero: true },
+          data: timeData
+        },
+        {
+          gridIndex: 1,
+          type: 'category',
+          boundaryGap: false,
+          axisLine: { onZero: true },
+          data: timeData,
+          position: 'top'
+        }
+      ],
+      yAxis: [
+        {
+          name: 'Evaporation(m³/s)',
+          type: 'value',
+          max: 500
+        },
+        {
+          gridIndex: 1,
+          name: 'Rainfall(mm)',
+          type: 'value',
+          inverse: true
+        }
+      ],
+      series: [
+        {
+          name: 'Evaporation',
+          type: 'line',
+          symbolSize: 8,
+          data: randomData()
+        },
+        {
+          name: 'Rainfall',
+          type: 'line',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          symbolSize: 8,
+          data: randomData()
+        }
+      ]
     };
-  },
-};
+
+    // Set the option for the chart
+    myChart.setOption(option);
+  }
+}
 </script>
 
-<style scoped>
-.steps-card-container {
-  padding: var(--td-comp-paddingTB-xxl) var(--td-comp-paddingLR-xxl);
-}
-
-:deep(.t-card__body) {
-  padding: 0;
+<style>
+#main {
+  width: 100%;
+  height: 400px;
 }
 </style>
