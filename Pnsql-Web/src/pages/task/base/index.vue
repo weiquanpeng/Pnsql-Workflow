@@ -72,7 +72,7 @@ const columns = ref<TableProps['columns']>([
     ),
   },
   { colKey: 'title', title: '标题', align: 'center', width: '180' },
-  { colKey: 'owner', title: '申请人', align: 'center', width: '200' },
+  { colKey: 'owner', title: '申请人', align: 'center' },
   {
     colKey: 'status',
     title: '状态',
@@ -89,8 +89,8 @@ const columns = ref<TableProps['columns']>([
     }
   },
   { colKey: 'task_describe', title: '工单描述', align: 'center', ellipsis: true },
-  { colKey: 'created_at', title: '创建时间', align: 'center', width: '240' },
-  { colKey: 'updated_at', title: '更新时间', align: 'center', width: '240' },
+  { colKey: 'created_at', title: '创建时间', align: 'center', ellipsis: true },
+  { colKey: 'updated_at', title: '更新时间', align: 'center', ellipsis: true },
   {
     colKey: 'operation',
     title: '操作',

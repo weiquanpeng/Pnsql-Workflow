@@ -277,7 +277,7 @@ const updateChart = () => {
                     font-size: 13px;
                   ">
                     ${isPositive ? '↑' : '↓'}
-                    ${(changeValue * 100).toFixed(2)}%
+                    ${(changeValue).toFixed(2)}%
                   </span>
                 </div>
               </div>
