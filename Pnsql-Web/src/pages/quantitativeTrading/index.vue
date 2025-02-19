@@ -255,10 +255,49 @@ const updateChart = () => {
               `;
             }
           });
+
+          if (currentData) {
+            html += `
+              <div style="
+                margin-top: 8px;
+                padding-top: 8px;
+                border-top: 1px solid #eee;
+              ">
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  margin-bottom: 4px;
+                ">
+                  <span style="color: #666; font-size: 13px">开盘价：</span>
+                  <span style="
+                    color: #333;
+                    font-weight: 600;
+                    font-size: 13px;
+                  ">
+                    ${currentData.f2?.toFixed(2) ?? '--'}
+                  </span>
+                </div>
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                ">
+                  <span style="color: #666; font-size: 13px">收盘价：</span>
+                  <span style="
+                    color: #333;
+                    font-weight: 600;
+                    font-size: 13px;
+                  ">
+                    ${currentData.f3?.toFixed(2) ?? '--'}
+                  </span>
+                </div>
+            `;
+          }
+
           if (currentData?.f9 !== undefined) {
             const changeValue = Number(currentData.f9);
             const isPositive = changeValue >= 0;
-
             html += `
               <div style="
                 margin-top: 8px;
@@ -283,6 +322,7 @@ const updateChart = () => {
               </div>
             `;
           }
+
           html += `</div>`; // 关闭最外层div
           return html;
         }

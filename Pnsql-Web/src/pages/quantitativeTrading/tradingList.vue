@@ -10,7 +10,11 @@
       />
     </div>
     <div class="card-container">
-      <t-card v-for="(data, index) in allData" :key="index" class="custom-card">
+      <t-card
+        v-for="(data, index) in allData"
+        :key="index"
+        class="custom-card"
+      >
         <template #header>
           <div class="card-title">{{ cardTitles[index] }}</div>
           <t-button
@@ -22,14 +26,20 @@
             复制
           </t-button>
         </template>
-        <t-loading v-if="loadingStatus[index]" text="加载数据..." size="small" class="custom-loading" />
+        <t-loading
+          v-if="loadingStatus[index]"
+          text="加载数据..."
+          size="small"
+          class="custom-loading"
+        />
         <div v-else class="log-container">
           <div class="log-content">
-            {{ data.length > 0 ? data.map(item => item.stock_ticker).join('\n') : '暂时数据......' }}
+            {{ data.length > 0 ? data.map((item) => item.stock_ticker).join('\n') : '暂时数据......' }}
           </div>
         </div>
       </t-card>
     </div>
+    <textarea id="hiddenTextArea" class="hidden-textarea"></textarea>
   </div>
 </template>
 
@@ -39,9 +49,9 @@ import {
   getDragon_queryDate,
   getAnnualMovingAverage,
   getSixtyMovingAverage,
-  getFollowedList
+  getFollowedList,
 } from '@/api/services/trading';
-import {MessagePlugin} from "tdesign-vue-next";
+import { MessagePlugin } from 'tdesign-vue-next';
 
 // 初始化日期为当天
 const selectedDate = ref<Date | null>(new Date());
@@ -56,7 +66,12 @@ const sixtyData = ref([]);
 const followedData = ref([]);
 
 // 组合所有数据
-const allData = computed(() => [dragonData.value, annualData.value, sixtyData.value, followedData.value]);
+const allData = computed(() => [
+  dragonData.value,
+  annualData.value,
+  sixtyData.value,
+  followedData.value,
+]);
 
 // 卡片标题
 const cardTitles = ['龙回头数据', '年线破均数据', '60破均数据', '我的自选'];
@@ -73,10 +88,10 @@ const handleDateChange = (date: Date) => {
   // 分别处理每个接口的请求和加载状态
   loadingStatus.value[0] = true;
   getDragon_queryDate(formattedDate)
-    .then(response => {
+    .then((response) => {
       dragonData.value = response.data.data || [];
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error fetching dragon data:', error);
     })
     .finally(() => {
@@ -85,10 +100,10 @@ const handleDateChange = (date: Date) => {
 
   loadingStatus.value[1] = true;
   getAnnualMovingAverage(formattedDate)
-    .then(response => {
+    .then((response) => {
       annualData.value = response.data.data || [];
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error fetching annual data:', error);
     })
     .finally(() => {
@@ -97,10 +112,10 @@ const handleDateChange = (date: Date) => {
 
   loadingStatus.value[2] = true;
   getSixtyMovingAverage(formattedDate)
-    .then(response => {
+    .then((response) => {
       sixtyData.value = response.data.data || [];
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error fetching sixty data:', error);
     })
     .finally(() => {
@@ -109,10 +124,10 @@ const handleDateChange = (date: Date) => {
 
   loadingStatus.value[3] = true;
   getFollowedList()
-    .then(response => {
+    .then((response) => {
       followedData.value = response.data.data || [];
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error fetching followed list data:', error);
     })
     .finally(() => {
@@ -128,17 +143,57 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// 备用的复制到剪贴板方法
+const useFallbackCopyTextToClipboard = (text: string): boolean => {
+  const textArea = document.getElementById(
+    'hiddenTextArea'
+  ) as HTMLTextAreaElement;
+  textArea.value = text;
+  textArea.focus();
+  textArea.select();
+  try {
+    const successful = document.execCommand('copy');
+    return successful;
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+    return false;
+  }
+};
+
 // 复制数据函数
 const copyData = (index: number) => {
   const data = allData.value[index];
-  const textToCopy = data.map(item => item.stock_ticker).join('\n');
-  navigator.clipboard.writeText(textToCopy)
-    .then(() => {
+  if (!data) {
+    MessagePlugin.error({ content: '复制失败：暂无数据', duration: 2000 });
+    return;
+  }
+  const textToCopy = data.map((item) => item.stock_ticker).join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => {
+        MessagePlugin.info({ content: '复制成功', duration: 2000 });
+      })
+      .catch((error) => {
+        console.error('复制错误:', error);
+        const success = useFallbackCopyTextToClipboard(textToCopy);
+        if (success) {
+          MessagePlugin.info({ content: '复制成功', duration: 2000 });
+        } else {
+          MessagePlugin.error({ content: '复制失败', duration: 2000 });
+        }
+      });
+  } else {
+    const success = useFallbackCopyTextToClipboard(textToCopy);
+    if (success) {
       MessagePlugin.info({ content: '复制成功', duration: 2000 });
-    })
-    .catch(error => {
-      MessagePlugin.error({ content: '复制失败', duration: 2000 });
-    });
+    } else {
+      MessagePlugin.error({
+        content: '复制失败：浏览器不支持剪贴板功能',
+        duration: 2000,
+      });
+    }
+  }
 };
 
 // 当组件加载时调用 handleDateChange
@@ -250,5 +305,15 @@ onMounted(() => {
 
 .copy-button:hover {
   background-color: #0056b3;
+}
+
+/* 隐藏 textarea */
+.hidden-textarea {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 </style>
