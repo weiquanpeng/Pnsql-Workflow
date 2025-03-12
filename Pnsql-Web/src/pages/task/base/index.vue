@@ -34,14 +34,14 @@
         :lazy-load="true"
       />
     </t-space>
-    <task-process ref="taskProcessRef"></task-process>
+    <task-process ref="taskProcessRef" @refreshParent="handleFetchMineTaskData"></task-process>
   </t-card>
 </template>
 
 <script setup lang="tsx">
 import { onMounted, ref, computed } from 'vue';
 import { getTaskConfigList, getMineTaskConfigList, getApproveTaskConfigList } from '@/api/services/taskConfig';
-import { SearchIcon, CheckCircleFilledIcon, LoadingIcon, TimeIcon, EllipsisIcon } from 'tdesign-icons-vue-next';
+import { SearchIcon, CheckCircleFilledIcon, LoadingIcon, TimeIcon, ErrorCircleIcon, CloseCircleIcon } from 'tdesign-icons-vue-next';
 import { TableProps, InputAdornmentProps } from 'tdesign-vue-next';
 import TaskProcess from '@/pages/task/base/TaskProcess.vue';
 import { useUserStore } from '@/store';
@@ -55,10 +55,11 @@ const selectedField = ref('id');
 const selectedOption = ref('small');
 
 const statusMapping = {
-  todo: { label: '待审批', theme: 'default', icon: <TimeIcon /> },
-  doing: { label: '审批中', theme: 'warning', icon: <EllipsisIcon /> },
-  running: { label: '执行中', theme: 'primary', icon: <LoadingIcon /> },
-  done: { label: '工单完成', theme: 'success', icon: <CheckCircleFilledIcon /> },
+  todo: { label: '待审批', theme: 'warning', icon: <TimeIcon /> },
+  doing: { label: '执行中', theme: 'primary', icon: <LoadingIcon /> },
+  error: { label: '执行失败', theme: 'danger', icon: <ErrorCircleIcon /> },
+  done: { label: '已完成', theme: 'success', icon: <CheckCircleFilledIcon /> },
+  close: { label: '工单关闭', theme: 'default', icon: <CloseCircleIcon /> },
 };
 
 const columns = ref<TableProps['columns']>([
@@ -89,8 +90,8 @@ const columns = ref<TableProps['columns']>([
     }
   },
   { colKey: 'task_describe', title: '工单描述', align: 'center', ellipsis: true },
-  { colKey: 'created_at', title: '创建时间', align: 'center', ellipsis: true },
-  { colKey: 'updated_at', title: '更新时间', align: 'center', ellipsis: true },
+  { colKey: 'create_time', title: '创建时间', align: 'center', ellipsis: true },
+  { colKey: 'update_time', title: '更新时间', align: 'center', ellipsis: true },
   {
     colKey: 'operation',
     title: '操作',
@@ -106,7 +107,7 @@ const columns = ref<TableProps['columns']>([
 
 const handleIdClick = async (row: any) => {
   try {
-    taskProcessRef.value.handleClick(row.id,row.type);
+    taskProcessRef.value.handleClick(row.id);
   } catch (error) {
     console.error('Error fetching sub task config data:', error);
   }

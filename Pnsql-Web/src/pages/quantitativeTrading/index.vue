@@ -5,7 +5,8 @@
         <div class="image-wrapper">
           <img class="left-align-image" src="/public/AAAA.jpg" alt="Button Image" />
         </div>
-        <t-button class="styled-button" @click="onPrimayButtonClick">爬虫启动</t-button>
+        <t-button class="styled-button" @click="onPrimayButtonClick">启动</t-button>
+        <t-button class="styled-button" @click="onFollowButtonClick">增量</t-button>
         <t-select
           v-model="selectedStock"
           :options="stockOptions"
@@ -61,6 +62,7 @@
         <div id="lineChartContainer" style="width: 100%; height: 630px"></div>
       </div>
       <trading-diglog ref="tradingDigLog"></trading-diglog>
+      <follow-diglog ref="followDigLog"></follow-diglog>
     </t-card>
   </div>
 </template>
@@ -81,7 +83,7 @@ import {
 } from '@/api/services/trading';
 
 import TradingDiglog from './TradingDiglog.vue';
-
+import FollowDiglog from './FollowDiglog.vue';
 // 定义格式化日期的函数
 const cacheSize = 10; // 每次缓存 10 支股票
 const dataCache = new Map(); // 使用 Map 保存缓存数据
@@ -96,6 +98,7 @@ function formatDate(date) {
 
 // 图表相关状态
 const tradingDigLog = ref();
+const followDigLog = ref();
 const loadingCounter = ref(0);
 const isLoading = computed(() => loadingCounter.value > 0);
 const stockData = ref([]);
@@ -116,7 +119,7 @@ const isFollowed = ref(false);
 const today = new Date();
 const selectedDate = ref(today);
 const selectedCondition = ref('');
-const conditions = ['龙回头', '60 破均', '年线破均'];
+const conditions = ['龙回头', '60 破均', '黄金线'];
 
 // 处理日期更改事件
 const handleDateChange = () => {
@@ -519,7 +522,7 @@ const handleCondition = async () => {
         response = await getDragon_queryDate(formattedDate);
       } else if (selectedCondition.value === '60 破均') {
         response = await getSixtyMovingAverage(formattedDate);
-      } else if (selectedCondition.value === '年线破均') {
+      } else if (selectedCondition.value === '黄金线') {
         response = await getAnnualMovingAverage(formattedDate);
       }
 
@@ -762,6 +765,9 @@ const handleInputBlur = async () => {
 const onPrimayButtonClick = () => {
   tradingDigLog.value.onClick();
 };
+const onFollowButtonClick = () => {
+  followDigLog.value.onClick();
+};
 </script>
 
 <style scoped>
@@ -847,6 +853,7 @@ const onPrimayButtonClick = () => {
   --td-comp-paddingTB-xxl: 10px;
   --td-comp-paddingLR-xxl: 0px;
   padding: var(--td-comp-paddingTB-xxl) var(--td-comp-paddingLR-xxl);
+  padding-bottom: 0px;
 }
 
 .trading-card-container :deep(.t-card__body) {

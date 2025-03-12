@@ -113,40 +113,56 @@ async def execute_specific_sql_query(request: DragonQueryRequest, session: Async
     }
     return await execute_query_and_respond(session, sql, params)
 
+
 @router.post("/annual_moving_average")
 async def annual_moving_average_query(request: DragonQueryRequest, session: AsyncSession = Depends(get_db)):
     query_date = datetime.strptime(request.date, "%Y-%m-%d")
-    y_date = get_previous_trading_day(query_date)
-    start_date = query_date - timedelta(days=200)
-    end_date = query_date - timedelta(days=10)
+    one_year_before_date = query_date - timedelta(days=365)
+    prev_trading_day = get_previous_trading_day(query_date)
+    two_days_before_prev_trading_day = get_previous_trading_day(prev_trading_day)
+
+    # Construct the SQL query
     sql = text("""
-    SELECT DISTINCT f0
-    FROM p_stock t1
-    WHERE
-        f1 = :y_date
-        AND f3 < f18
-        AND f0 IN (
-            SELECT f0
-            FROM p_stock
-            WHERE f1 = :query_date AND f3 > f18
-        )
-        AND f0 NOT LIKE '30%'
-        AND f0 NOT LIKE '68%'
-        AND EXISTS (
-            SELECT 1
-            FROM p_stock AS t2
-            WHERE t2.f0 = t1.f0
-              AND t2.f1 BETWEEN :start_date AND :end_date
-              AND t2.f9 > 9.5
-        );
+    SELECT DISTINCT t1.f0
+    FROM p_stock AS t1
+    WHERE t1.f1 = :query_date
+      AND t1.f3 - t1.f16 < t1.f3 * 0.05
+      AND t1.f3 - t1.f16 > 0
+      AND t1.f9 < 0
+      AND t1.f0 NOT LIKE '30%'
+      AND t1.f0 NOT LIKE '68%'
+      AND EXISTS (
+        SELECT 1
+        FROM p_stock AS t2
+        WHERE t2.f0 = t1.f0
+          AND t2.f1 BETWEEN :one_year_before_date AND :query_date
+          AND t2.f9 > 9.5
+      )
+      AND EXISTS (
+        SELECT 1
+        FROM p_stock AS t3
+        WHERE t3.f0 = t1.f0
+          AND t3.f1 = :prev_trading_day
+          AND t3.f9 < 0
+      )
+      AND EXISTS (
+        SELECT 1
+        FROM p_stock AS t4
+        WHERE t4.f0 = t1.f0
+          AND t4.f1 = :two_days_before_prev_trading_day
+          AND t4.f9 < 0
+      );
     """)
+
     params = {
         "query_date": request.date,
-        "y_date": y_date.strftime("%Y-%m-%d"),
-        "start_date": start_date.strftime("%Y-%m-%d"),
-        "end_date": end_date.strftime("%Y-%m-%d")
+        "one_year_before_date": one_year_before_date.strftime("%Y-%m-%d"),
+        "prev_trading_day": prev_trading_day.strftime("%Y-%m-%d"),
+        "two_days_before_prev_trading_day": two_days_before_prev_trading_day.strftime("%Y-%m-%d")
     }
+
     return await execute_query_and_respond(session, sql, params)
+
 
 @router.post("/dragon_query")
 async def sixty_moving_average_query(request: DragonQueryRequest, session: AsyncSession = Depends(get_db)):

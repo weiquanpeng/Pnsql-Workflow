@@ -4,8 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy.sql import func
 from initialize.init_database import Base
 from util.log import logger
-logger = logger(__file__, log_level="INFO")
-
+logger = logger()
 class SysUser(Base):
     __tablename__ = "sys_users"
 
@@ -42,13 +41,12 @@ class SysUser(Base):
     async def insert_user(cls, session: AsyncSession, data: dict):
         columns = cls.__table__.columns.keys()
         valid_data = {key: value for key, value in data.items() if key in columns}
-
         try:
             new_user = cls(**valid_data)
             session.add(new_user)
-            await session.flush()  # 使用 await
-            await session.refresh(new_user)  # 使用 await
-            await session.commit()  # 使用 await
+            await session.flush()
+            await session.refresh(new_user)
+            await session.commit()
             logger.info("创建用户: {} 成功".format(new_user.account))
             return new_user
         except Exception as e:

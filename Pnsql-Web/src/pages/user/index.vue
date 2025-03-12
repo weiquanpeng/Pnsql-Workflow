@@ -6,7 +6,7 @@
           Hi，Image
           <span class="regular"> {{ t('pages.user.markDay') }}</span>
         </div>
-        <img src="@/assets/assets-tencent-logo.png" class="logo" />
+        <img src="/public/AAAA.jpg" class="logo" style="width: 100px"/>
       </div>
 
       <t-card class="user-info-list" :title="t('pages.user.personalInfo.title')" :bordered="false">

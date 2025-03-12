@@ -1,9 +1,7 @@
 from datetime import timedelta
-
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.jwt import JWTUtils, ACCESS_TOKEN_EXPIRE_MINUTES
 from initialize.init_database import get_db
 from model.sys_user import SysUser

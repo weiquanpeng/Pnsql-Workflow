@@ -8,6 +8,7 @@ const Api = {
   annual_moving_average: '/annual_moving_average',
   sixty_moving_average: '/sixty_moving_average',
   FollowedList: '/FollowedList',
+  ResetAllFollows: '/ResetAllFollows',
 };
 
 export function getStockF0(f0Id: string) {
@@ -68,5 +69,11 @@ export function getSixtyMovingAverage(date: string) {
 export function getFollowedList() {
   return request.post({
     url: Api.FollowedList,
+  });
+}
+
+export function ResetAllFollows() {
+  return request.post({
+    url: Api.ResetAllFollows,
   });
 }

@@ -12,6 +12,7 @@
       :on-close="close"
       :on-confirm="onConfirmAnother"
       :confirm-loading="loading"
+      style="--td-comp-paddingTB-xxl: 40px; --td-comp-paddingLR-xxl: 40px"
     >
       <t-space direction="vertical" style="width: 100%">
         <div>
@@ -35,12 +36,15 @@ const onClick = () => {
   visible.value = true;
 };
 const task = {
-  title: '爬虫任务',
+  title: '全量任务',
   owner: user.userInfo.name,
   approver: 'admin',
-  status: 'todo',
+  status: 'tosplit',
   task_describe: '爬虫抓取股票任务',
-  type: 'fabric_stock_dag',
+  type: 'FabricStockDag',
+  paras: {
+    'sit-jobid': '123',
+  },
 };
 
 const onConfirmAnother = async () => {
@@ -48,7 +52,7 @@ const onConfirmAnother = async () => {
   try {
     const response = await addTaskConfigData(task);
     if (response.code === 200) {
-      NotifyPlugin.info({ title: '操作成功',content:"爬虫工单地址: " });
+      NotifyPlugin.info({ title: '操作成功',content:"爬虫工单: " });
     }
   } catch (error) {
     console.error('Error addTaskConfigData data:', error);
@@ -76,3 +80,11 @@ defineExpose({
   onClick,
 });
 </script>
+
+<style scoped>
+.trading-card-container {
+  --td-comp-paddingTB-xxl: 40px;
+  --td-comp-paddingLR-xxl: 0px;
+  padding: var(--td-comp-paddingTB-xxl) var(--td-comp-paddingLR-xxl);
+}
+</style>

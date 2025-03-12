@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from initialize.init_database import get_db
-from model.follow_stock import Follow_Stock
 import util.response as response
 from model.follow_stock import Follow_Stock
 router = APIRouter()
@@ -53,3 +52,14 @@ async def get_all_followed_stocks(session: AsyncSession = Depends(get_db)):
     except Exception as e:
         # 捕获异常并返回错误信息
         return response.fail_with_message(f"获取关注股票出错: {str(e)}")
+
+@router.post("/ResetAllFollows")
+async def reset_all_follows(session: AsyncSession = Depends(get_db)):
+    try:
+        success = await Follow_Stock.reset_all_follow_fields(session)
+        if success:
+            return response.ok_with_message("所有股票关注已重置为0")
+        else:
+            return response.fail_with_message("重置股票关注状态失败")
+    except Exception as e:
+        return response.fail_with_message(f"重置关注状态失败: {str(e)}")

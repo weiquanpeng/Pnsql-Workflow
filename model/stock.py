@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Date, String, BigInteger, Integer, DECIMAL, Index
+from sqlalchemy import Column, Date, String, BigInteger, Integer, DECIMAL, Index, UniqueConstraint
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from initialize.init_database import Base
@@ -33,6 +33,7 @@ class PwqScecss(Base):
 
     # 索引
     __table_args__ = (
+        UniqueConstraint('f0', 'f1', name='uq_stock_date'),
         Index('in_1', 'f12', 'f13', 'f14', 'f15', 'f16', 'f17', 'f18', 'f19'),
         Index('in_2', 'f1'),
         Index('in_3', 'f6'),

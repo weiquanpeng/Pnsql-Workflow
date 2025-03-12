@@ -6,6 +6,7 @@ const Api = {
   TaskConfigGetApproveList: '/TaskConfigGetApproveList',
   TaskConfigAddData: '/TaskConfigAddData',
   SubTaskConfigList: '/SubTaskConfigList',
+  UptSubTaskData: '/UptSubTaskData',
 };
 
 export function getTaskConfigList() {
@@ -36,12 +37,22 @@ export function addTaskConfigData(data: Record<string, any>) {
 }
 
 // eslint-disable-next-line camelcase
-export function getSubTaskConfigData(id: number, type: string) {
+export function getSubTaskConfigData(task_id: number) {
   return request.post({
-    url: `${Api.SubTaskConfigList}?dag_run_id=${id}`,
+    url: Api.SubTaskConfigList,
     data: {
       // eslint-disable-next-line camelcase
-      type,
+      task_id,
+    },
+  });
+}
+
+export function UptSubTaskData(id: number, status: string) {
+  return request.post({
+    url: Api.UptSubTaskData,
+    data: {
+      id,
+      status,
     },
   });
 }

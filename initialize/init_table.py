@@ -3,6 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import declarative_base
 import importlib
 import os
+
+from model.process_subtask_config import ProcessSubtaskConfig
 from util.hashlib import hash_password
 
 
@@ -34,3 +36,49 @@ async def init_default_user(session: AsyncSession):
         await session.commit()
     else:
         pass
+
+
+async def init_default_subtask_config(session: AsyncSession):
+    # 定义要插入的记录
+    default_subtask_configs = [
+        {
+            "name": "FabricStockExecution",
+            "type": "job",
+            "description": "全量爬虫任务",
+            "exec_type": "bash",
+            "script_host": "localhost",
+            "interpreter": "python3",
+            "script": "FabricStockExecution.py",
+            "owner": "weiquanpeng"
+        },
+        {
+            "name": "FollowStockExecution",
+            "type": "job",
+            "description": "增量爬虫任务",
+            "exec_type": "bash",
+            "script_host": "localhost",
+            "interpreter": "python3",
+            "script": "FollowStockExecution.py",
+            "owner": "weiquanpeng"
+        },
+        {
+            "name": "TaskDone",
+            "type": "job",
+            "description": "完成工单",
+            "exec_type": "bash",
+            "script_host": "localhost",
+            "interpreter": "python3",
+            "script": "TaskDone.py",
+            "owner": "weiquanpeng"
+        }
+    ]
+    for config in default_subtask_configs:
+        result = await session.execute(
+            select(ProcessSubtaskConfig).where(ProcessSubtaskConfig.name == config["name"])
+        )
+        if result.scalars().first() is None:
+            new_subtask_config = ProcessSubtaskConfig(**config)
+            session.add(new_subtask_config)
+            await session.commit()
+        else:
+            pass

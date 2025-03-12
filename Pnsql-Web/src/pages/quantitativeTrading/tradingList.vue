@@ -17,6 +17,17 @@
       >
         <template #header>
           <div class="card-title">{{ cardTitles[index] }}</div>
+          <!-- 仅在“我的自选”卡片中添加清除按钮 -->
+          <template v-if="cardTitles[index] === '我的自选'">
+            <t-button
+              theme="danger"
+              size="small"
+              @click="clearData"
+              class="clear-button"
+            >
+              清除
+            </t-button>
+          </template>
           <t-button
             theme="primary"
             size="small"
@@ -51,7 +62,9 @@ import {
   getSixtyMovingAverage,
   getFollowedList,
 } from '@/api/services/trading';
-import { MessagePlugin } from 'tdesign-vue-next';
+import {MessagePlugin, NotifyPlugin} from 'tdesign-vue-next';
+import { ResetAllFollows } from '@/api/services/trading';
+import {addTaskConfigData} from "@/api/services/taskConfig";
 
 // 初始化日期为当天
 const selectedDate = ref<Date | null>(new Date());
@@ -74,7 +87,7 @@ const allData = computed(() => [
 ]);
 
 // 卡片标题
-const cardTitles = ['龙回头数据', '年线破均数据', '60破均数据', '我的自选'];
+const cardTitles = ['龙回头数据', '黄金线数据', '60破均数据', '我的自选'];
 
 // 日期变化处理函数
 const handleDateChange = (date: Date) => {
@@ -196,6 +209,15 @@ const copyData = (index: number) => {
   }
 };
 
+// 清除按钮点击处理函数
+const clearData = async () => {
+  const response = await ResetAllFollows();
+  if (response.code === 200) {
+    MessagePlugin.info({ content: '清理成功', duration: 2000 });
+    handleDateChange(selectedDate.value);
+  }
+};
+
 // 当组件加载时调用 handleDateChange
 onMounted(() => {
   if (selectedDate.value) {
@@ -305,6 +327,24 @@ onMounted(() => {
 
 .copy-button:hover {
   background-color: #0056b3;
+}
+
+.clear-button {
+  position: absolute;
+  top: 10px;
+  right: 70px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clear-button:hover {
+  background-color: #c82333;
 }
 
 /* 隐藏 textarea */

@@ -56,3 +56,18 @@ class Follow_Stock(Base):
             return result.scalars().all()
         except Exception as e:
             return []
+
+    @classmethod
+    async def reset_all_follow_fields(cls, session: AsyncSession):
+        stmt = (
+            update(cls)
+            .values(follow=0)
+            .execution_options(synchronize_session="fetch")
+        )
+        try:
+            await session.execute(stmt)
+            await session.commit()
+            return True
+        except Exception as e:
+            await session.rollback()
+            return False

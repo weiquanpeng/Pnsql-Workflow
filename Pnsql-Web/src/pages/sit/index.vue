@@ -1,132 +1,78 @@
 <template>
-  <div id="main" style="width: 100%; height: 400px;"></div>
+  <t-space>
+    <t-dialog
+      v-model:visible="visible"
+      header="爬虫确认"
+      width="40%"
+      :confirm-on-enter="loading"
+      :on-cancel="onCancel"
+      :on-esc-keydown="onEscKeydown"
+      :on-close-btn-click="onCloseBtnClick"
+      :on-overlay-click="onOverlayClick"
+      :on-close="close"
+      :on-confirm="onConfirmAnother"
+      :confirm-loading="loading"
+    >
+      <t-space direction="vertical" style="width: 100%">
+        <div>
+          <p>是否确认生成爬虫工单，这将通过流程量化抓取所有A股数据...</p>
+        </div>
+      </t-space>
+    </t-dialog>
+  </t-space>
 </template>
+<script setup>
+import { ref } from 'vue';
+import { useUserStore } from '@/store';
+import { addTaskConfigData } from '@/api/services/taskConfig';
+import { NotifyPlugin } from 'tdesign-vue-next';
 
-<script>
-import * as echarts from 'echarts';
+const user = useUserStore();
+const visible = ref(true);
 
-export default {
-  mounted() {
-    // Get the chart DOM element
-    var chartDom = document.getElementById('main');
-    // Initialize the chart
-    var myChart = echarts.init(chartDom);
+const loading = ref(false);
+const onClick = () => {
+  visible.value = true;
+};
+const task = {
+  title: '爬虫任务',
+  owner: user.userInfo.name,
+  approver: 'admin',
+  status: 'todo',
+  task_describe: '爬虫抓取股票任务',
+  type: 'fabric_stock_dag',
+};
 
-    // Generate random data for demo
-    function randomData() {
-      const baseValue = Math.random() * 300;
-      return Array.from({ length: 30 }, () => (Math.random() * 50) + baseValue);
+const onConfirmAnother = async () => {
+  loading.value = true;
+  try {
+    const response = await addTaskConfigData(task);
+    if (response.code === 200) {
+      NotifyPlugin.info({ title: '操作成功',content:"爬虫工单: " });
     }
-
-    let timeData = Array.from({ length: 30 }, (v, i) => `09/${i+1}`);
-
-    const option = {
-      title: {
-        text: 'Rainfall vs Evaporation',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          animation: false
-        }
-      },
-      legend: {
-        data: ['Evaporation', 'Rainfall'],
-        left: 10
-      },
-      toolbox: {
-        feature: {
-          dataZoom: {
-            yAxisIndex: 'none'
-          }
-        }
-      },
-      dataZoom: [
-        {
-          show: true,
-          realtime: true,
-          start: 30,
-          end: 70,
-          xAxisIndex: [0, 1]
-        },
-        {
-          type: 'inside',
-          realtime: true,
-          start: 30,
-          end: 70,
-          xAxisIndex: [0, 1]
-        }
-      ],
-      grid: [
-        {
-          left: 60,
-          right: 50,
-          height: '35%'
-        },
-        {
-          left: 60,
-          right: 50,
-          top: '55%',
-          height: '35%'
-        }
-      ],
-      xAxis: [
-        {
-          type: 'category',
-          boundaryGap: false,
-          axisLine: { onZero: true },
-          data: timeData
-        },
-        {
-          gridIndex: 1,
-          type: 'category',
-          boundaryGap: false,
-          axisLine: { onZero: true },
-          data: timeData,
-          position: 'top'
-        }
-      ],
-      yAxis: [
-        {
-          name: 'Evaporation(m³/s)',
-          type: 'value',
-          max: 500
-        },
-        {
-          gridIndex: 1,
-          name: 'Rainfall(mm)',
-          type: 'value',
-          inverse: true
-        }
-      ],
-      series: [
-        {
-          name: 'Evaporation',
-          type: 'line',
-          symbolSize: 8,
-          data: randomData()
-        },
-        {
-          name: 'Rainfall',
-          type: 'line',
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          symbolSize: 8,
-          data: randomData()
-        }
-      ]
-    };
-
-    // Set the option for the chart
-    myChart.setOption(option);
+  } catch (error) {
+    console.error('Error addTaskConfigData data:', error);
+  } finally {
+    loading.value = false;
   }
-}
+  visible.value = false;
+};
+const close = (context) => {
+  console.log('关闭弹窗，点击关闭按钮、按下ESC、点击蒙层等触发', context);
+};
+const onCancel = (context) => {
+  console.log('点击了取消按钮', context);
+};
+const onEscKeydown = (context) => {
+  console.log('按下了ESC', context);
+};
+const onCloseBtnClick = (context) => {
+  console.log('点击了关闭按钮', context);
+};
+const onOverlayClick = (context) => {
+  console.log('点击了蒙层', context);
+};
+defineExpose({
+  onClick,
+});
 </script>
-
-<style>
-#main {
-  width: 100%;
-  height: 400px;
-}
-</style>
