@@ -1,7 +1,13 @@
 import subprocess
 import paramiko
+import sys
 
 def safe_execute_local_cmd(cmd_array):
+    # 获取虚拟环境的 Python 解释器路径
+    python_path = sys.executable
+    # 检查 cmd_array 的第一个元素是否为 'python'
+    if cmd_array[0] == 'python':
+        cmd_array[0] = python_path
     child = subprocess.Popen(cmd_array, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = child.communicate()
     if child.poll() != 0:
