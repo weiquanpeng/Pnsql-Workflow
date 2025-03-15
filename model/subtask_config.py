@@ -5,9 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from initialize.init_database import Base
 
 class SubTaskConfig(Base):
-    __tablename__ = "subtask_config"  # 数据库表名
-
-    # 表字段
+    __tablename__ = "subtask_config"
     id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键ID")
     create_time = Column(DateTime,nullable=False,server_default=text("CURRENT_TIMESTAMP"), comment="创建时间")
     update_time = Column(DateTime,nullable=False,server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),comment="更新时间")
@@ -21,7 +19,6 @@ class SubTaskConfig(Base):
     task_describe = Column(String(128), nullable=True, comment="工单描述")
     execute_time = Column(DateTime, nullable=True, default=None, comment="执行时间")
 
-    # 表级选项
     __table_args__ = (
         {"comment": "子任务配置表"},
     )

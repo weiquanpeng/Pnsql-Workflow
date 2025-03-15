@@ -6,9 +6,13 @@ const Api = {
   UpdateFollow: '/UpdateFollow',
   dragon_query: '/dragon_query',
   annual_moving_average: '/annual_moving_average',
+  annual_moving_average2: '/annual_moving_average2',
   sixty_moving_average: '/sixty_moving_average',
   FollowedList: '/FollowedList',
   ResetAllFollows: '/ResetAllFollows',
+  get_record_by_id: '/get_record_by_id',
+  update_dragon_time: '/update_dragon_time',
+  update_average_time: '/update_average_time',
 };
 
 export function getStockF0(f0Id: string) {
@@ -57,6 +61,15 @@ export function getAnnualMovingAverage(date: string) {
   });
 }
 
+export function getAnnualMovingAverage2(date: string) {
+  return request.post({
+    url: Api.annual_moving_average2,
+    data: {
+      date,
+    },
+  });
+}
+
 export function getSixtyMovingAverage(date: string) {
   return request.post({
     url: Api.sixty_moving_average,
@@ -75,5 +88,35 @@ export function getFollowedList() {
 export function ResetAllFollows() {
   return request.post({
     url: Api.ResetAllFollows,
+  });
+}
+
+export function getRecordDay() {
+  return request.post({
+    url: Api.get_record_by_id,
+  });
+}
+
+// eslint-disable-next-line camelcase
+export function updateDragonTime(dragon_time: string) {
+  return request.post({
+    url: Api.update_dragon_time,
+    data: {
+      id: 1,
+      // eslint-disable-next-line camelcase
+      dragon_time,
+    },
+  });
+}
+
+// eslint-disable-next-line camelcase
+export function updateAverageTime(average_time: string) {
+  return request.post({
+    url: Api.update_average_time,
+    data: {
+      id: 1,
+      // eslint-disable-next-line camelcase
+      average_time,
+    },
   });
 }

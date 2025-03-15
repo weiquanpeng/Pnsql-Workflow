@@ -41,7 +41,7 @@
             style="margin-right: 10px"
             @change="handleDateChange"
           />
-          <t-radio-group v-model="selectedCondition" variant="primary-filled" @change="handleCondition">
+          <t-radio-group style="display: flex; flex-direction: row; align-items: center;" v-model="selectedCondition" variant="primary-filled" @change="handleCondition">
             <t-radio-button v-for="item in conditions" :key="item" :value="item">
               {{ item }}
             </t-radio-button>
@@ -75,6 +75,7 @@ import { computed, onMounted, ref } from 'vue';
 // eslint-disable-next-line camelcase
 import {
   getAnnualMovingAverage,
+  getAnnualMovingAverage2,
   getDragon_queryDate,
   getFollowStock,
   getSixtyMovingAverage,
@@ -119,7 +120,7 @@ const isFollowed = ref(false);
 const today = new Date();
 const selectedDate = ref(today);
 const selectedCondition = ref('');
-const conditions = ['龙回头', '60 破均', '黄金线'];
+const conditions = ['龙', '破', '黄金', '黄金2'];
 
 // 处理日期更改事件
 const handleDateChange = () => {
@@ -518,12 +519,14 @@ const handleCondition = async () => {
     const formattedDate = formatDate(date);
 
     if (formattedDate) {
-      if (selectedCondition.value === '龙回头') {
+      if (selectedCondition.value === '龙') {
         response = await getDragon_queryDate(formattedDate);
-      } else if (selectedCondition.value === '60 破均') {
+      } else if (selectedCondition.value === '破') {
         response = await getSixtyMovingAverage(formattedDate);
-      } else if (selectedCondition.value === '黄金线') {
+      } else if (selectedCondition.value === '黄金') {
         response = await getAnnualMovingAverage(formattedDate);
+      } else if (selectedCondition.value === '黄金2') {
+        response = await getAnnualMovingAverage2(formattedDate);
       }
 
       if (response && response.data.data && response.data.data.length) {
@@ -546,7 +549,7 @@ const handleCondition = async () => {
           await preloadStockData(stockOptions.value, 0, cacheSize);
         }
       } else {
-        MessagePlugin.info({ content: '当天无策略数据', duration: 2000 });
+        MessagePlugin.info({ content: '当天无策略数据', duration: 1000 });
         // 清空选择器数据
         stockOptions.value = [];
         selectedStock.value = '';

@@ -1,9 +1,11 @@
-from sqlalchemy import select
+from datetime import datetime
+from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import declarative_base
 import importlib
 import os
 
+from model.last_record_time import Last_Record_Time
 from model.process_subtask_config import ProcessSubtaskConfig
 from util.hashlib import hash_password
 
@@ -34,9 +36,19 @@ async def init_default_user(session: AsyncSession):
         new_user = SysUser(**default_user)
         session.add(new_user)
         await session.commit()
-    else:
-        pass
 
+async def init_last_record_time(session: AsyncSession):
+    today_date = datetime.now().date()
+    result = await session.execute(select(Last_Record_Time).where(Last_Record_Time.id == 1))
+    if result.scalars().first() is None:
+        new_record = {
+            "id": 1,
+            "dragon_time": today_date,
+            "average_time": today_date
+        }
+        stmt = insert(Last_Record_Time).values(new_record)
+        await session.execute(stmt)
+        await session.commit()
 
 async def init_default_subtask_config(session: AsyncSession):
     # 定义要插入的记录
@@ -80,5 +92,3 @@ async def init_default_subtask_config(session: AsyncSession):
             new_subtask_config = ProcessSubtaskConfig(**config)
             session.add(new_subtask_config)
             await session.commit()
-        else:
-            pass

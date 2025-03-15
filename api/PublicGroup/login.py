@@ -45,11 +45,11 @@ async def login(request: UserRequest, session: AsyncSession = Depends(get_db)):
         user = await SysUser.get_user_by_account(session, request.account)
         if user:
             # 验证密码
-            if verify_password(request.password, user.password):  # 假设用户模型的密码字段是 password
+            if verify_password(request.password, user.password):
                 # 生成 Token
                 access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
                 access_token = JWTUtils.create_access_token(
-                    data={"sub": user.account},  # 将用户账号编码到 Token 中
+                    data={"sub": user.account},
                     expires_delta=access_token_expires,
                 )
 

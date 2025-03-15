@@ -1,11 +1,26 @@
 <template>
   <div class="container">
     <div class="date-picker-container">
+      <span class="date-picker-label">自选:</span>
       <t-date-picker
         v-model="selectedDate"
         placeholder="选择日期"
         @change="handleDateChange"
         :value="new Date()"
+        class="custom-date-picker"
+      />
+      <span class="date-picker-label" style="padding-left: 50px">龙回头上次记录时间点:</span>
+      <t-date-picker
+        v-model="dragonLastRecordDate"
+        placeholder="选择日期"
+        @change="handleDragonLastRecordDateChange"
+        class="custom-date-picker"
+      />
+      <span class="date-picker-label" style="padding-left: 50px">均线上次记录时间点:</span>
+      <t-date-picker
+        v-model="averageLastRecordDate"
+        placeholder="选择日期"
+        @change="handleAverageLastRecordDateChange"
         class="custom-date-picker"
       />
     </div>
@@ -62,12 +77,13 @@ import {
   getSixtyMovingAverage,
   getFollowedList,
 } from '@/api/services/trading';
-import {MessagePlugin, NotifyPlugin} from 'tdesign-vue-next';
-import { ResetAllFollows } from '@/api/services/trading';
-import {addTaskConfigData} from "@/api/services/taskConfig";
+import { MessagePlugin } from 'tdesign-vue-next';
+import { ResetAllFollows, getRecordDay, updateDragonTime, updateAverageTime } from '@/api/services/trading';
 
 // 初始化日期为当天
 const selectedDate = ref<Date | null>(new Date());
+const dragonLastRecordDate = ref<Date | null>(null);
+const averageLastRecordDate = ref<Date | null>(null);
 
 // 各个卡片的加载状态
 const loadingStatus = ref([true, true, true, true]);
@@ -90,12 +106,15 @@ const allData = computed(() => [
 const cardTitles = ['龙回头数据', '黄金线数据', '60破均数据', '我的自选'];
 
 // 日期变化处理函数
-const handleDateChange = (date: Date) => {
+const handleDateChange = (date: Date | string) => {
   if (!date) {
     console.error('No date selected');
     return;
   }
-  selectedDate.value = new Date(date);
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
+  selectedDate.value = date;
   const formattedDate = formatDate(selectedDate.value);
 
   // 分别处理每个接口的请求和加载状态
@@ -146,6 +165,32 @@ const handleDateChange = (date: Date) => {
     .finally(() => {
       loadingStatus.value[3] = false;
     });
+};
+
+const handleDragonLastRecordDateChange = async (date: Date | string) => {
+  if (date) {
+    if (typeof date === 'string') {
+      date = new Date(date);
+    }
+    const response = await updateDragonTime(formatDate(date));
+    if (response.code === 200) {
+      MessagePlugin.info({ content: response.msg, duration: 1000 });
+    }
+    dragonLastRecordDate.value = date;
+  }
+};
+
+const handleAverageLastRecordDateChange = async (date: Date | string) => {
+  if (date) {
+    if (typeof date === 'string') {
+      date = new Date(date);
+    }
+    const response = await updateAverageTime(formatDate(date));
+    if (response.code === 200) {
+      MessagePlugin.info({ content: response.msg, duration: 1000});
+    }
+    averageLastRecordDate.value = date;
+  }
 };
 
 // 日期格式化函数
@@ -218,11 +263,23 @@ const clearData = async () => {
   }
 };
 
-// 当组件加载时调用 handleDateChange
-onMounted(() => {
+// 请求上次记录时间点并赋值
+const fetchLastRecordDates = async () => {
+  try {
+    const response = await getRecordDay();
+    dragonLastRecordDate.value = new Date(response.data.dragon_time);
+    averageLastRecordDate.value = new Date(response.data.average_time);
+  } catch (error) {
+    console.error('Error fetching last record dates:', error);
+  }
+};
+
+// 当组件加载时调用 handleDateChange 和 fetchLastRecordDates
+onMounted(async () => {
   if (selectedDate.value) {
     handleDateChange(selectedDate.value);
   }
+  await fetchLastRecordDates();
 });
 </script>
 
@@ -235,6 +292,15 @@ onMounted(() => {
 
 .date-picker-container {
   margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.date-picker-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
 }
 
 .custom-date-picker {

@@ -4,9 +4,7 @@ from initialize.init_database import Base
 
 
 class ProcessSubtaskConfig(Base):
-    __tablename__ = "process_subtask_config"  # 表名
-
-    # 表字段
+    __tablename__ = "process_subtask_config"
     id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键 ID")
     name = Column(String(64), nullable=False, unique=True, comment="任务名")
     type = Column(String(64), nullable=False, server_default=text("'job'"), comment="子任务类型: job, cronjob")
@@ -19,7 +17,6 @@ class ProcessSubtaskConfig(Base):
     createtime = Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP"), comment="创建时间")
     updatetime = Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment="更新时间")
 
-    # 表级选项
     __table_args__ = (
         {"comment": "子任务配置表"},
     )

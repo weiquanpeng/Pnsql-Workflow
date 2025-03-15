@@ -15,7 +15,7 @@ class JobFactory(object):
         self.db = TaskDB(conn_setting)
         self.job = self.db.get_subtask_by_id(jobid)
         self.job['paras'] = json.loads(self.job['paras'])
-        self.logger = logger(jobid)
+        self.logger = logger(self.job['task_id'])
 
     def run(self):
         command = JobCommand(self.db.get_subtask_config(self.job['type']), self.job)
