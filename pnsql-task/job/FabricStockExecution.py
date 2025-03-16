@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import time
 
 from job.job_factory import JobFactory
+from service.workflow import WorkFlowApi
 from worker import parse_args
 
 current_date = datetime.now()
@@ -197,6 +198,7 @@ if __name__ == "__main__":
     try:
         options = parse_args(sys.argv[1:])
         work = JobFactory(options.jobid)
+        workflow = WorkFlowApi()
         work.logger.info("--------------------------------------任务开始-----------------------------------------------")
         with db_connection('pnsql_workflow') as conn:
             cursor = conn.cursor()
@@ -208,5 +210,6 @@ if __name__ == "__main__":
         end_date = formatted_current_date
         execute_with_concurrency(stock_infos, max_concurrent=100)
         work.logger.info("股票代码获取完毕......")
+        workflow.update_sub_task_data(options.jobid,"done")
     except Exception as e:
         work.logger.error(traceback.format_exc())
