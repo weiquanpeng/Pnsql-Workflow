@@ -112,50 +112,59 @@ async def execute_specific_sql_query(request: DragonQueryRequest, session: Async
     return await execute_query_and_respond(session, sql, params)
 
 
+def get_previous_trading_day(date: datetime) -> datetime:
+    cn_holidays = holidays.China()
+    day_before = date - timedelta(days=1)
+    while day_before.weekday() >= 5 or day_before in cn_holidays:
+        day_before -= timedelta(days=1)
+    return day_before
+
+
 @router.post("/annual_moving_average")
-async def annual_moving_average_query(request: DragonQueryRequest, session: AsyncSession = Depends(get_db)):
+async def continuous_query(request: DragonQueryRequest, session: AsyncSession = Depends(get_db)):
     query_date = datetime.strptime(request.date, "%Y-%m-%d")
-    one_year_before_date = query_date - timedelta(days=365)
-    prev_trading_day = get_previous_trading_day(query_date)
-    two_days_before_prev_trading_day = get_previous_trading_day(prev_trading_day)
-    sql = text("""
-    SELECT DISTINCT t1.f0
-    FROM p_stock AS t1
-    WHERE t1.f1 = :query_date
-      AND t1.f3 - t1.f16 < t1.f3 * 0.05
-      AND t1.f3 - t1.f16 > 0
-      AND t1.f9 < 0
-      AND t1.f0 NOT LIKE '30%'
-      AND t1.f0 NOT LIKE '68%'
-      AND EXISTS (
-        SELECT 1
-        FROM p_stock AS t2
-        WHERE t2.f0 = t1.f0
-          AND t2.f1 BETWEEN :one_year_before_date AND :query_date
-          AND t2.f9 > 9.5
-      )
-      AND EXISTS (
-        SELECT 1
-        FROM p_stock AS t3
-        WHERE t3.f0 = t1.f0
-          AND t3.f1 = :prev_trading_day
-          AND t3.f9 < 0
-      )
-      AND EXISTS (
-        SELECT 1
-        FROM p_stock AS t4
-        WHERE t4.f0 = t1.f0
-          AND t4.f1 = :two_days_before_prev_trading_day
-          AND t4.f9 < 0
-      );
-    """)
-    params = {
-        "query_date": request.date,
-        "one_year_before_date": one_year_before_date.strftime("%Y-%m-%d"),
-        "prev_trading_day": prev_trading_day.strftime("%Y-%m-%d"),
-        "two_days_before_prev_trading_day": two_days_before_prev_trading_day.strftime("%Y-%m-%d")
-    }
-    return await execute_query_and_respond(session, sql, params)
+    cn_holidays = holidays.China()
+    queries = []
+
+    for _ in range(5):  # 查找连续5个交易日
+        if query_date.weekday() < 5 and query_date not in cn_holidays:
+            one_month_before_date = get_previous_trading_day(query_date - timedelta(days=30))
+            one_hundred_eighty_days_before_date = get_previous_trading_day(query_date - timedelta(days=180))
+
+            query = f"""
+              SELECT DISTINCT f0 
+              FROM p_stock t1 
+              WHERE f13 > f14 
+                AND f14 > f15 
+                AND f15 > f16 
+                AND f1 = '{query_date.strftime("%Y-%m-%d")}' 
+                AND f0 NOT LIKE '30%' 
+                AND f0 NOT LIKE '68%' 
+                AND f0 IN (
+                  SELECT DISTINCT f0 
+                  FROM p_stock t2 
+                  WHERE f13 > f14 
+                    AND f14 > f15 
+                    AND f15 > f16 
+                    AND f1 = '{one_month_before_date.strftime("%Y-%m-%d")}' 
+                    AND f0 NOT LIKE '30%' 
+                    AND f0 NOT LIKE '68%'
+                )
+                AND EXISTS (
+                  SELECT 1 
+                  FROM p_stock t3 
+                  WHERE t3.f0 = t1.f0 
+                    AND t3.f1 BETWEEN '{one_hundred_eighty_days_before_date.strftime("%Y-%m-%d")}' AND '{query_date.strftime("%Y-%m-%d")}' 
+                    AND t3.f9 > 9.5
+                )
+            """
+            queries.append(query)
+        query_date = get_previous_trading_day(query_date - timedelta(days=1))
+
+    sql = " UNION ALL ".join(queries)
+
+    result = await execute_query_and_respond(session, text(sql), {})
+    return result
 
 @router.post("/annual_moving_average2")
 async def annual_moving_average_query(request: DragonQueryRequest, session: AsyncSession = Depends(get_db)):

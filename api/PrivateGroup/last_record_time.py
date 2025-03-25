@@ -13,6 +13,7 @@ class RecordUpdateRequest(BaseModel):
     id: int
     dragon_time: str = None
     average_time: str = None
+    gold_time: str = None
 
 @router.post("/get_record_by_id")
 async def get_record_by_id(session: AsyncSession = Depends(get_db)):
@@ -57,3 +58,14 @@ async def update_average_time(request: RecordUpdateRequest, session: AsyncSessio
     except Exception as e:
         return fail_with_message(f"Error fetching record: {str(e)}")
 
+@router.post("/update_gold_time")
+async def update_gold_time(request: RecordUpdateRequest, session: AsyncSession = Depends(get_db)):
+    try:
+        gold_time = datetime.strptime(request.gold_time, "%Y-%m-%d").date()
+        updated = await Last_Record_Time.update_gold_time(session, request.id, gold_time)
+        if updated:
+            return ok_with_message("更新收藏时间成功")
+        else:
+            return fail_with_message("更新收藏时间失败")
+    except Exception as e:
+        return fail_with_message(f"Error fetching record: {str(e)}")

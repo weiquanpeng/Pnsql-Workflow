@@ -23,6 +23,13 @@
         @change="handleAverageLastRecordDateChange"
         class="custom-date-picker"
       />
+      <span class="date-picker-label" style="padding-left: 50px">黄金线上次记录时间点:</span>
+      <t-date-picker
+        v-model="averageLastRecordDate"
+        placeholder="选择日期"
+        @change="handleGoleLastRecordDateChange"
+        class="custom-date-picker"
+      />
     </div>
     <div class="card-container">
       <t-card
@@ -75,15 +82,16 @@ import {
   getDragon_queryDate,
   getAnnualMovingAverage,
   getSixtyMovingAverage,
-  getFollowedList,
+  getFollowedList
 } from '@/api/services/trading';
 import { MessagePlugin } from 'tdesign-vue-next';
-import { ResetAllFollows, getRecordDay, updateDragonTime, updateAverageTime } from '@/api/services/trading';
+import { ResetAllFollows, getRecordDay, updateDragonTime, updateAverageTime, updateGoldTime } from '@/api/services/trading';
 
 // 初始化日期为当天
 const selectedDate = ref<Date | null>(new Date());
 const dragonLastRecordDate = ref<Date | null>(null);
 const averageLastRecordDate = ref<Date | null>(null);
+const goleLastRecordDate = ref<Date | null>(null);
 
 // 各个卡片的加载状态
 const loadingStatus = ref([true, true, true, true]);
@@ -193,6 +201,19 @@ const handleAverageLastRecordDateChange = async (date: Date | string) => {
   }
 };
 
+const handleGoleLastRecordDateChange = async (date: Date | string) => {
+  if (date) {
+    if (typeof date === 'string') {
+      date = new Date(date);
+    }
+    const response = await updateGoldTime(formatDate(date));
+    if (response.code === 200) {
+      MessagePlugin.info({ content: response.msg, duration: 1000});
+    }
+    goleLastRecordDate.value = date;
+  }
+};
+
 // 日期格式化函数
 function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -269,6 +290,7 @@ const fetchLastRecordDates = async () => {
     const response = await getRecordDay();
     dragonLastRecordDate.value = new Date(response.data.dragon_time);
     averageLastRecordDate.value = new Date(response.data.average_time);
+    goleLastRecordDate.value = new Date(response.data.gole_time);
   } catch (error) {
     console.error('Error fetching last record dates:', error);
   }

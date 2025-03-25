@@ -7,8 +7,9 @@ class Last_Record_Time(Base):
     __tablename__ = "last_record_time"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键ID")
-    dragon_time = Column(Date, nullable=True, comment="龙回头上次执行时间")
-    average_time = Column(Date, nullable=True, comment="均线上次执行时间")
+    dragon_time = Column(Date, nullable=True, comment="龙回头上次记录时间")
+    average_time = Column(Date, nullable=True, comment="均线上次记录时间")
+    gold_time = Column(Date, nullable=True, comment="黄金线上次记录时间")
 
     __table_args__ = (
         {"comment": "时间记录表"},
@@ -51,6 +52,23 @@ class Last_Record_Time(Base):
                 update(cls)
                 .where(cls.id == record_id)
                 .values(average_time=average_time)
+                .execution_options(synchronize_session="fetch")
+            )
+            result = await session.execute(stmt)
+            await session.commit()
+            return result.rowcount > 0
+        except SQLAlchemyError as e:
+            print(f"Error updating average_time: {e}")
+            return False
+
+    @classmethod
+    async def update_gold_time(cls, session: AsyncSession, record_id: int, gold_time):
+        """更新指定记录的 average_time 字段值"""
+        try:
+            stmt = (
+                update(cls)
+                .where(cls.id == record_id)
+                .values(gold_time=gold_time)
                 .execution_options(synchronize_session="fetch")
             )
             result = await session.execute(stmt)

@@ -13,6 +13,7 @@ const Api = {
   get_record_by_id: '/get_record_by_id',
   update_dragon_time: '/update_dragon_time',
   update_average_time: '/update_average_time',
+  update_gold_time: '/update_gold_time',
 };
 
 export function getStockF0(f0Id: string) {
@@ -117,6 +118,18 @@ export function updateAverageTime(average_time: string) {
       id: 1,
       // eslint-disable-next-line camelcase
       average_time,
+    },
+  });
+}
+
+// eslint-disable-next-line camelcase
+export function updateGoldTime(gold_time: string) {
+  return request.post({
+    url: Api.update_gold_time,
+    data: {
+      id: 1,
+      // eslint-disable-next-line camelcase
+      gold_time,
     },
   });
 }
