@@ -25,7 +25,7 @@
       />
       <span class="date-picker-label" style="padding-left: 50px">黄金线上次记录时间点:</span>
       <t-date-picker
-        v-model="averageLastRecordDate"
+        v-model="goleLastRecordDate"
         placeholder="选择日期"
         @change="handleGoleLastRecordDateChange"
         class="custom-date-picker"
@@ -290,7 +290,7 @@ const fetchLastRecordDates = async () => {
     const response = await getRecordDay();
     dragonLastRecordDate.value = new Date(response.data.dragon_time);
     averageLastRecordDate.value = new Date(response.data.average_time);
-    goleLastRecordDate.value = new Date(response.data.gole_time);
+    goleLastRecordDate.value = new Date(response.data.gold_time);
   } catch (error) {
     console.error('Error fetching last record dates:', error);
   }

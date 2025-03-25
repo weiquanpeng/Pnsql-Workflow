@@ -26,7 +26,8 @@ async def get_record_by_id(session: AsyncSession = Depends(get_db)):
                 return ok_with_data({
                     "id": record.id,
                     "dragon_time": record.dragon_time.strftime("%Y-%m-%d") if record.dragon_time else None,
-                    "average_time": record.average_time.strftime("%Y-%m-%d") if record.average_time else None
+                    "average_time": record.average_time.strftime("%Y-%m-%d") if record.average_time else None,
+                    "gold_time": record.gold_time.strftime("%Y-%m-%d") if record.gold_time else None
                 })
         return fail_with_message("查询收藏时间失败")
     except Exception as e:
