@@ -1,27 +1,33 @@
 import traceback
-from urllib.parse import urlencode
+import akshare as ak
 import pandas as pd
-import requests
-import pymysql
-from contextlib import contextmanager
-import baostock as bs
-import sys
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
+import concurrent.futures
 import time
-
+import re
+import pymysql
+import sys
+from contextlib import contextmanager
+import logging
+from datetime import datetime
 from job.job_factory import JobFactory
 from service.workflow import WorkFlowApi
 from worker import parse_args
+from functools import partial
 
-current_date = datetime.now()
-formatted_current_date = current_date.strftime('%Y%m%d')
-one_year_ago = current_date - timedelta(days=900)
-formatted_one_year_ago = one_year_ago.strftime('%Y%m%d')
+# 初始化logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # 数据库连接管理器
 @contextmanager
 def db_connection(database='pnsql_workflow'):
+    conn = None
     try:
         conn = pymysql.connect(
             host='8.153.100.186',
@@ -33,166 +39,97 @@ def db_connection(database='pnsql_workflow'):
             autocommit=True
         )
         yield conn
-    except Exception as e:
-        work.logger.info(f"数据库连接失败: {e}")
-        raise
     finally:
-        conn.close()
+        if conn is not None:
+            conn.close()
 
-# 获取股票代码和名称
-def get_stock_codes(date=None):
-    bs.login()
-    stock_df = bs.query_all_stock(date).get_data()
+def get_code(symbol_fmt):
+    m = re.search(r'(\d{6})$', symbol_fmt)
+    if m:
+        return m.group(1)
+    else:
+        return symbol_fmt
 
-    if len(stock_df) == 0:
-        if date is not None:
-            work.logger.info('当前选择日期为非交易日或尚无交易数据，请设置date为历史某交易日日期')
-            sys.exit(0)
+def fetch_and_insert_stock(args, logger):
+    symbol, name, end_day, days = args
+    symbol = str(symbol)
+    if not symbol.isdigit() or len(symbol) != 6:
+        logger.warning(f"{symbol} {name}: 非法股票代码，跳过")
+        return
 
-        delta = 1
-        while len(stock_df) == 0:
-            stock_df = bs.query_all_stock((datetime.now().date() - timedelta(days=delta)).strftime('%Y-%m-%d')).get_data()
-            delta += 1
+    for retry_cnt in range(3):
+        try:
+            # 股票前缀补全
+            if symbol.startswith('6'):
+                symbol_fmt = 'sh' + symbol
+            elif symbol.startswith('4') or symbol.startswith('8'):
+                symbol_fmt = 'bj' + symbol
+            else:
+                symbol_fmt = 'sz' + symbol
 
-    bs.logout()
-    stock_df = stock_df[(stock_df['code'] >= 'sh.600000') & (stock_df['code'] < 'sz.399000')]
-    # 返回股票代码和名称的字典列表
-    return stock_df[['code', 'code_name']].to_dict('records')
+            df = ak.stock_zh_a_daily(symbol=symbol_fmt, adjust="qfq").reset_index()
+            if df.empty:
+                logger.info(f"{symbol} {name}: 无数据")
+                return
 
-# 生成secid
-def gen_secid(rawcode: str) -> str:
-    if rawcode[:3] == '000' and len(rawcode) == 6:  # 修正：添加长度判断，避免误判沪市指数
-        return f'0.{rawcode}'  # 000开头6位代码一般是深市股票
-    if rawcode[:3] == '399':  # 深证指数
-        return f'0.{rawcode}'
-    if rawcode[0] != '6':  # 深市股票
-        return f'0.{rawcode}'
-    return f'1.{rawcode}'  # 沪市股票
+            # 强制date列变为str，避免类型不一致
+            df['date'] = df['date'].astype(str)
+            df = df[df['date'] <= end_day]
+            if df.empty:
+                logger.info(f"{symbol} {name}: {end_day}及之前无数据")
+                return
 
-# 获取K线数据
-def get_k_history(code: str, beg: str, end: str, klt: int = 101, fqt: int = 1) -> list:
-    EastmoneyKlines = {
-        'f51': '日期',
-        'f52': '开盘',
-        'f53': '收盘',
-        'f54': '最高',
-        'f55': '最低',
-        'f56': '成交量',
-        'f57': '成交额',
-        'f58': '振幅',
-        'f59': '涨跌幅',
-        'f60': '涨跌额',
-        'f61': '换手率',
-    }
-
-    EastmoneyHeaders = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko',
-        'Accept': '*/*',
-        'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-        'Referer': 'http://quote.eastmoney.com/center/gridlist.html',
-    }
-
-    fields = list(EastmoneyKlines.keys())
-    columns = list(EastmoneyKlines.values())
-    fields2 = ",".join(fields)
-    secid = gen_secid(code)
-
-    params = {
-        'fields1': 'f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13',
-        'fields2': fields2,
-        'beg': beg,
-        'end': end,
-        'rtntype': '6',
-        'secid': secid,
-        'klt': f'{klt}',
-        'fqt': f'{fqt}',
-    }
-
-    base_url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get'
-    url = base_url + '?' + urlencode(params)
-
-    try:
-        response = requests.get(url, headers=EastmoneyHeaders)
-        json_response = response.json()
-        data = json_response.get('data')
-
-        if data is None:
-            secid = f'1.{code}' if secid[0] == '0' else f'0.{code}'
-            params['secid'] = secid
-            url = base_url + '?' + urlencode(params)
-            response = requests.get(url, headers=EastmoneyHeaders)
-            json_response = response.json()
-            data = json_response.get('data')
-
-        if data is None:
-            work.logger.info(f'股票代码: {code} 可能有误，响应信息: {json_response}')
-            return []
-
-        klines = data['klines']
-        rows = [kline.split(',') for kline in klines]
-        return rows
-    except Exception as e:
-        work.logger.info(f'请求股票代码 {code} 数据时出现错误: {e}')
-        return []
-
-# 计算平均值
-def hebing(p, y):
-    averages = [0] * (y - 1)
-    for i in range(len(p) - (y - 1)):
-        subset = [float(x) for x in p[i:i + y]]
-        average = round(sum(subset) / len(subset), 3)
-        averages.append(format(average, '.3f'))
-    return averages
-
-# 处理股票数据并插入数据库
-def p_start(stock_info):
-    code = stock_info['code'].replace('.', '')[2:]  # 提取纯数字代码
-    name = stock_info['code_name']  # 股票中文名称
-
-    with db_connection('pnsql_workflow') as conn:
-        cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
-        df = get_k_history(code, start_date, end_date)
-
-        if not df:
-            work.logger.info(f"股票 {code} 无数据或获取失败")
-            return
-
-        p_list = [i[2] for i in df]  # 收盘价
-        p_list2 = [i[5] for i in df]  # 成交量
-
-        # 计算各种平均值
-        averages = {
-            'x6': hebing(p_list, 5),
-            'x18': hebing(p_list, 10),
-            'x72': hebing(p_list, 20),
-            'x96': hebing(p_list, 30),
-            'x144': hebing(p_list, 60),
-            'x200': hebing(p_list, 120),
-            'x288': hebing(p_list, 250),
-            'm6': hebing(p_list2, 5)
-        }
-
-        # 合并数据
-        c_list = df
-        for key, values in averages.items():
-            c_list = [x + [y] for x, y in zip(c_list, values)]
-
-        # 插入数据库（添加股票名称字段 f20）
-        insert_query = """
-        INSERT INTO p_stock (f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f19,f20)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """
-        for i in c_list:
-            cursor.execute(insert_query, (code,) + tuple(i) + (name,))
-
-        work.logger.info(f"股票 {code} ({name}) 已获取完成")
-        cursor.close()
-        time.sleep(0.1)  # 添加适当的延迟
-
-# 多线程执行
-def execute_with_concurrency(stock_list, max_concurrent=5):
-    with ThreadPoolExecutor(max_workers=max_concurrent) as executor:
-        executor.map(p_start, stock_list)
+            df['symbol'] = get_code(symbol_fmt)
+            df['name'] = name
+            df['涨跌幅'] = (df['close'] - df['close'].shift(1)) / df['close'].shift(1) * 100
+            df['MA5'] = df['close'].rolling(window=5).mean()
+            df['MA10'] = df['close'].rolling(window=10).mean()
+            df['MA20'] = df['close'].rolling(window=20).mean()
+            df['MA30'] = df['close'].rolling(window=30).mean()
+            df['MA60'] = df['close'].rolling(window=60).mean()
+            # 取最近N天数据，按日期逆序后head再正序
+            insert_df = df[['symbol', 'date', 'open', 'close', 'high', 'low',
+                            '涨跌幅', 'MA5', 'MA10', 'MA20', 'MA30', 'MA60', 'name']].sort_values(
+                                    'date', ascending=False).head(days).sort_values('date')
+            if insert_df.empty:
+                logger.info(f"{symbol} {name}: 无可用数据，跳过")
+                return
+            insert_values = [
+                (
+                    row['symbol'],
+                    row['date'],
+                    float(row['open']),
+                    float(row['close']),
+                    float(row['high']),
+                    float(row['low']),
+                    float(row['涨跌幅']) if pd.notnull(row['涨跌幅']) else None,
+                    float(row['MA5']) if pd.notnull(row['MA5']) else None,
+                    float(row['MA10']) if pd.notnull(row['MA10']) else None,
+                    float(row['MA20']) if pd.notnull(row['MA20']) else None,
+                    float(row['MA30']) if pd.notnull(row['MA30']) else None,
+                    float(row['MA60']) if pd.notnull(row['MA60']) else None,
+                    row['name']
+                )
+                for idx, row in insert_df.iterrows()
+            ]
+            insert_query = """
+            INSERT INTO p_stock
+            (f0, f1, f2, f3, f4, f5, f9, f12, f13, f14, f15, f16, f20)
+            VALUES 
+            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            with db_connection('pnsql_workflow') as conn:
+                with conn.cursor() as cursor:
+                    cursor.executemany(insert_query, insert_values)
+            logger.info(f"{symbol} {name}: 入库成功({len(insert_values)}条)")
+            logger.info(f"{symbol} {name}: 抓取并写入数据库完成")   # 新增日志
+            break
+        except Exception as e:
+            logger.error(f"{symbol} {name} 抓取失败（第{retry_cnt+1}次），重试: {e}")
+            time.sleep(2)
+    else:
+        logger.error(f"{symbol} {name} 多次失败跳过")
+    return
 
 if __name__ == "__main__":
     try:
@@ -200,16 +137,44 @@ if __name__ == "__main__":
         work = JobFactory(options.jobid)
         workflow = WorkFlowApi()
         work.logger.info("--------------------------------------任务开始-----------------------------------------------")
+        # 自动用今天为end_day，抓最近600天
+        end_day = datetime.now().strftime('%Y-%m-%d')
+        days = 600
+        work.logger.info(f"抓取截止日期: {end_day}，往前{days}天")
+
+        # 清空主表
         with db_connection('pnsql_workflow') as conn:
             cursor = conn.cursor()
             cursor.execute("TRUNCATE TABLE p_stock")
             cursor.close()
-        work.logger.info("初始化表完成......")
-        stock_infos = get_stock_codes()
-        start_date = formatted_one_year_ago
-        end_date = formatted_current_date
-        execute_with_concurrency(stock_infos, max_concurrent=100)
-        work.logger.info("股票代码获取完毕......")
-        workflow.update_sub_task_data(options.jobid,"done")
+        work.logger.info("p_stock表已清空")
+
+        # 获取全部A股股票代码和名称
+        df = ak.stock_zh_a_spot()
+        df['symbol'] = df['代码'].astype(str).str.extract(r'(\d{6})$')
+        spot_df = df[df['symbol'].notnull() & df['symbol'].str.isdigit()].copy()
+        symbols = spot_df['symbol'].tolist()
+        names = spot_df['名称'].tolist()
+        argslist = [(s, n, end_day, days) for s, n in zip(symbols, names)]
+        work.logger.info(f'共获取A股股票数: {len(symbols)}')
+
+        # 多线程启动，每只股票抓取完都打印日志
+        max_workers = 8
+        fetch_func = partial(fetch_and_insert_stock, logger=work.logger)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            list(executor.map(fetch_func, argslist))
+        work.logger.info("全部A股入库完成")
+
+        # ========== 全部入库后执行两个SQL ==========
+        with db_connection('pnsql_workflow') as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("TRUNCATE TABLE p_follow_stock")
+                cursor.execute("""
+                    INSERT INTO p_follow_stock (stock_ticker,stock_name) 
+                    SELECT DISTINCT f0,f20 FROM p_stock
+                """)
+        work.logger.info("p_follow_stock已更新")
+        workflow.update_sub_task_data(options.jobid, "done")
     except Exception as e:
         work.logger.error(traceback.format_exc())
+

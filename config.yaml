@@ -2,8 +2,8 @@ app:
   debug: False
   port: 2379
   log_path: log/
-  job_log: /Users/pengweiquan/pwq/Pnsql-Workflow/pnsql-task/log
-  file_path: ['http://8.153.100.186:3002','http://localhost:3002']
+  job_log: /data/Pnsql-Workflow/pnsql-task/log
+  file_path: ['http://8.153.100.186','http://localhost']
 
 jwt:
   permanent_token: ekJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTczODMyNDQ5OH0.9znJOAPKjmRuoSQwTM0GIZYfS8FbUhGjXvA7ZVvkZkW

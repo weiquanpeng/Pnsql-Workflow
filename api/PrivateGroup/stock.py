@@ -17,24 +17,33 @@ class StockRequest(BaseModel):
 class DragonQueryRequest(BaseModel):
     date: str
 
+def safe_float(val):
+    try:
+        if val is None:
+            return None
+        return float(val)
+    except Exception:
+        return None
+
 def build_stock_data(pwq_sce: PwqScecss):
     return {
         "id": pwq_sce.id,
         "f0": pwq_sce.f0,
         "f1": pwq_sce.f1.strftime("%Y-%m-%d") if pwq_sce.f1 else None,
-        "f2": float(pwq_sce.f2),
-        "f3": float(pwq_sce.f3),
-        "f4": float(pwq_sce.f4),
-        "f5": float(pwq_sce.f5),
-        "f9": float(pwq_sce.f9),
-        "f12": float(pwq_sce.f12),
-        "f13": float(pwq_sce.f13),
-        "f14": float(pwq_sce.f14),
-        "f15": float(pwq_sce.f15),
-        "f16": float(pwq_sce.f16),
-        "f17": float(pwq_sce.f17),
-        "f18": float(pwq_sce.f18)
+        "f2": safe_float(pwq_sce.f2),
+        "f3": safe_float(pwq_sce.f3),
+        "f4": safe_float(pwq_sce.f4),
+        "f5": safe_float(pwq_sce.f5),
+        "f9": safe_float(pwq_sce.f9),
+        "f12": safe_float(pwq_sce.f12),
+        "f13": safe_float(pwq_sce.f13),
+        "f14": safe_float(pwq_sce.f14),
+        "f15": safe_float(pwq_sce.f15),
+        "f16": safe_float(pwq_sce.f16),
+        "f17": safe_float(pwq_sce.f17),
+        "f18": safe_float(pwq_sce.f18)
     }
+
 
 def get_previous_trading_day(date: datetime) -> datetime:
     cn_holidays = holidays.China()
@@ -95,6 +104,7 @@ async def execute_specific_sql_query(request: DragonQueryRequest, session: Async
         )
         AND f0 NOT LIKE '30%'
         AND f0 NOT LIKE '68%'
+        AND f0 NOT LIKE '83%'
         AND EXISTS (
             SELECT 1
             FROM p_stock AS t2
@@ -139,7 +149,8 @@ async def continuous_query(request: DragonQueryRequest, session: AsyncSession = 
                 AND f15 > f16 
                 AND f1 = '{query_date.strftime("%Y-%m-%d")}' 
                 AND f0 NOT LIKE '30%' 
-                AND f0 NOT LIKE '68%' 
+                AND f0 NOT LIKE '68%'
+                AND f0 NOT LIKE '83%' 
                 AND f0 IN (
                   SELECT DISTINCT f0 
                   FROM p_stock t2 
@@ -149,6 +160,7 @@ async def continuous_query(request: DragonQueryRequest, session: AsyncSession = 
                     AND f1 = '{one_month_before_date.strftime("%Y-%m-%d")}' 
                     AND f0 NOT LIKE '30%' 
                     AND f0 NOT LIKE '68%'
+                    AND f0 NOT LIKE '83%'
                 )
                 AND EXISTS (
                   SELECT 1 
@@ -180,6 +192,7 @@ async def annual_moving_average_query(request: DragonQueryRequest, session: Asyn
       AND t1.f9 < 0
       AND t1.f0 NOT LIKE '30%'
       AND t1.f0 NOT LIKE '68%'
+      AND t1.f0 NOT LIKE '83%'
       AND EXISTS (
         SELECT 1
         FROM p_stock AS t2
@@ -212,6 +225,7 @@ async def sixty_moving_average_query(request: DragonQueryRequest, session: Async
       AND f9 > 9.5 
       AND f0 NOT LIKE '30%' 
       AND f0 NOT LIKE '68%'
+      AND f0 NOT LIKE '83%'
     """)
     params = {
         "query_date": request.date
