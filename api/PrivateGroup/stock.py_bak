@@ -88,38 +88,37 @@ async def get_stock_by_f0(request: StockRequest, session: AsyncSession = Depends
 @router.post("/sixty_moving_average")
 async def execute_specific_sql_query(request: DragonQueryRequest, session: AsyncSession = Depends(get_db)):
     query_date = datetime.strptime(request.date, "%Y-%m-%d")
-    prev_date = get_previous_trading_day(query_date)
+    y_date = get_previous_trading_day(query_date)
     start_date = query_date - timedelta(days=200)
     end_date = query_date - timedelta(days=10)
-
     sql = text("""
-    SELECT DISTINCT a.f0
-    FROM p_stock a
-    JOIN p_stock b ON a.f0 = b.f0
-    WHERE a.f1 = :query_date
-      AND a.f3 > a.f12
-      AND a.f9 > 3
-      AND b.f1 = :prev_date
-      AND b.f3 < b.f12
-      AND a.f0 NOT LIKE '30%' 
-      AND a.f0 NOT LIKE '68%' 
-      AND a.f0 NOT LIKE '83%'
-      AND EXISTS (
-          SELECT 1
-          FROM p_stock AS t2
-          WHERE t2.f0 = a.f0
-            AND t2.f1 BETWEEN :start_date AND :end_date
-            AND t2.f9 > 9.5
-      );
+    SELECT DISTINCT f0
+    FROM p_stock t1
+    WHERE
+        f1 = :y_date
+        AND f3 < f16
+        AND f0 IN (
+            SELECT f0
+            FROM p_stock
+            WHERE f1 = :query_date AND f3 > f16
+        )
+        AND f0 NOT LIKE '30%'
+        AND f0 NOT LIKE '68%'
+        AND f0 NOT LIKE '83%'
+        AND EXISTS (
+            SELECT 1
+            FROM p_stock AS t2
+            WHERE t2.f0 = t1.f0
+              AND t2.f1 BETWEEN :start_date AND :end_date
+              AND t2.f9 > 9.5
+        );
     """)
-
     params = {
-        "query_date": query_date.strftime("%Y-%m-%d"),
-        "prev_date": prev_date.strftime("%Y-%m-%d"),
+        "query_date": request.date,
+        "y_date": y_date.strftime("%Y-%m-%d"),
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d")
     }
-
     return await execute_query_and_respond(session, sql, params)
 
 
@@ -143,31 +142,31 @@ async def continuous_query(request: DragonQueryRequest, session: AsyncSession = 
             one_hundred_eighty_days_before_date = get_previous_trading_day(query_date - timedelta(days=180))
 
             query = f"""
-              SELECT DISTINCT f0
-              FROM p_stock t1
-              WHERE f13 > f14
-                AND f14 > f15
-                AND f15 > f16
-                AND f1 = '{query_date.strftime("%Y-%m-%d")}'
-                AND f0 NOT LIKE '30%'
+              SELECT DISTINCT f0 
+              FROM p_stock t1 
+              WHERE f13 > f14 
+                AND f14 > f15 
+                AND f15 > f16 
+                AND f1 = '{query_date.strftime("%Y-%m-%d")}' 
+                AND f0 NOT LIKE '30%' 
                 AND f0 NOT LIKE '68%'
-                AND f0 NOT LIKE '83%'
+                AND f0 NOT LIKE '83%' 
                 AND f0 IN (
-                  SELECT DISTINCT f0
-                  FROM p_stock t2
-                  WHERE f13 > f14
-                    AND f14 > f15
-                    AND f15 > f16
-                    AND f1 = '{one_month_before_date.strftime("%Y-%m-%d")}'
-                    AND f0 NOT LIKE '30%'
+                  SELECT DISTINCT f0 
+                  FROM p_stock t2 
+                  WHERE f13 > f14 
+                    AND f14 > f15 
+                    AND f15 > f16 
+                    AND f1 = '{one_month_before_date.strftime("%Y-%m-%d")}' 
+                    AND f0 NOT LIKE '30%' 
                     AND f0 NOT LIKE '68%'
                     AND f0 NOT LIKE '83%'
                 )
                 AND EXISTS (
-                  SELECT 1
-                  FROM p_stock t3
-                  WHERE t3.f0 = t1.f0
-                    AND t3.f1 BETWEEN '{one_hundred_eighty_days_before_date.strftime("%Y-%m-%d")}' AND '{query_date.strftime("%Y-%m-%d")}'
+                  SELECT 1 
+                  FROM p_stock t3 
+                  WHERE t3.f0 = t1.f0 
+                    AND t3.f1 BETWEEN '{one_hundred_eighty_days_before_date.strftime("%Y-%m-%d")}' AND '{query_date.strftime("%Y-%m-%d")}' 
                     AND t3.f9 > 9.5
                 )
             """
@@ -220,11 +219,11 @@ async def annual_moving_average_query(request: DragonQueryRequest, session: Asyn
 async def sixty_moving_average_query(request: DragonQueryRequest, session: AsyncSession = Depends(get_db)):
     query_date = datetime.strptime(request.date, "%Y-%m-%d")
     sql = text("""
-    SELECT DISTINCT f0
-    FROM p_stock
-    WHERE f1 = :query_date
-      AND f9 > 9.5
-      AND f0 NOT LIKE '30%'
+    SELECT DISTINCT f0 
+    FROM p_stock 
+    WHERE f1 = :query_date 
+      AND f9 > 9.5 
+      AND f0 NOT LIKE '30%' 
       AND f0 NOT LIKE '68%'
       AND f0 NOT LIKE '83%'
     """)
